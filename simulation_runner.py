@@ -1,7 +1,5 @@
-import os
 import subprocess
 import itertools
-import glob
 
 from mako.template import Template
 
@@ -9,8 +7,22 @@ from mako.template import Template
 def hasher(keys, param_set):
     return hash(''.join(map(str, param_set.values()))) % 65535
 
+
 def string(keys, param_set):
     return '_'.join('{key}={param}'.format(key=key, param=param) for key, param in zip(keys, param_set))
+
+
+class _Sequential:
+    def __init__(self, start_at=0, zfill=4):
+        self.start_at = start_at
+        self.zfill = zfill
+        self.count = start_at
+
+    def next(self, keys, param_set):
+        self.count += 1
+        return str(self.count).zfill(self.zfill)
+
+sequential = _Sequential().next
 
 
 def run_simulation(command, config_path, template_path=None, template_text=None,
