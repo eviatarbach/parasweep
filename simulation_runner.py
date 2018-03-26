@@ -3,23 +3,15 @@ import subprocess
 import itertools
 import glob
 
-from jinja2 import Environment, FileSystemLoader
-
-DEFAULTS = {}
+from mako.template import Template
 
 
-def post_process(sim_id):
-    pass
-
-
-def run_simulation(simulation, params_file, single_parameters={},
+def run_simulation(command, config_path, template_path, single_parameters={},
                    sweep_parameters={}, build=False, run=True):
-    params = DEFAULTS.copy()
-    params.update(single_parameters)
-    starting_dir = os.path.abspath('.')
+    params = single_parameters.copy()
+
     if build:
         pass
-    os.chdir(starting_dir)
 
     sim_ids = []
     keys = sweep_parameters.keys()
@@ -30,8 +22,8 @@ def run_simulation(simulation, params_file, single_parameters={},
     else:
         product = [params]
 
-    config = Environment(loader=FileSystemLoader(starting_dir),
-                         trim_blocks=True).get_template(params_file)
+    config = Template(filename=template_path, input_encoding='utf-8')
+
     processes = []
     for param_set in product:
         sweep_params = params.copy()
@@ -42,17 +34,15 @@ def run_simulation(simulation, params_file, single_parameters={},
         sim_id = abs(sum(map(hash, sweep_params.values()))) % 65535
         sim_ids.append(sim_id)
 
-        config.render(**sweep_params)
-        config_file = open('../test/config_{sim_id}'.format(sim_id=sim_id), 'w')
-        config_file.write(config)
+        config_rendered = config.render(**sweep_params)
+        config_file = open(config_path.format(sim_id=sim_id), 'w')
+        config_file.write(config_rendered)
         config_file.close()
 
         if run:
-            os.chdir(build_dir)
             print("Running simulation {sim_id} with parameters:".format(sim_id=sim_id))
             print(zip(keys, param_set))
-            proc = subprocess.Popen(['./{simulation}'.format(simulation=simulation)])
-            os.chdir(starting_dir)
+            proc = subprocess.Popen([command.format(simulation=simulation, sim_id=sim_id)])
             processes.append(proc)
 
     # Wait until all processes are finished
@@ -60,8 +50,3 @@ def run_simulation(simulation, params_file, single_parameters={},
         process.wait()
 
     print(sim_ids)
-    for index, sim_id in enumerate(sim_ids):
-        post_process(sim_id)
-
-        if not os.path.isdir(str(sim_id)):
-            os.mkdir(str(sim_id))
