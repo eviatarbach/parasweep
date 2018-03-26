@@ -14,8 +14,8 @@ def run_simulation(command, config_path, template_path, single_parameters={},
         pass
 
     sim_ids = []
-    keys = sweep_parameters.keys()
-    values = [sweep_parameters[key] for key in keys]
+    keys = list(sweep_parameters.keys())
+    values = sweep_parameters.values()
 
     if sweep_parameters:
         product = itertools.product(*values)
@@ -41,12 +41,10 @@ def run_simulation(command, config_path, template_path, single_parameters={},
 
         if run:
             print("Running simulation {sim_id} with parameters:".format(sim_id=sim_id))
-            print(zip(keys, param_set))
-            proc = subprocess.Popen([command.format(simulation=simulation, sim_id=sim_id)])
+            print('\n'.join('{key}: {param}'.format(key=key, param=param) for key, param in zip(keys, param_set)))
+            proc = subprocess.Popen(command.format(sim_id=sim_id), shell=True)
             processes.append(proc)
 
     # Wait until all processes are finished
     for process in processes:
         process.wait()
-
-    print(sim_ids)
