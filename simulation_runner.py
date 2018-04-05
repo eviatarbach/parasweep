@@ -16,7 +16,7 @@ class _Sequential:
     def __init__(self, start_at=0, zfill=4):
         self.start_at = start_at
         self.zfill = zfill
-        self.count = start_at
+        self.count = start_at - 1
 
     def next(self, keys, param_set):
         self.count += 1
