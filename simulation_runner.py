@@ -1,5 +1,6 @@
 import subprocess
 import itertools
+import time
 
 from mako.template import Template
 
@@ -27,7 +28,7 @@ sequential = _Sequential().next
 
 def run_simulation(command, config_path, template_path=None, template_text=None,
                    single_parameters={}, sweep_parameters={}, naming=string,
-                   build=False, run=True, verbose=True):
+                   build=False, run=True, verbose=True, delay=False):
     '''
     EXAMPLES:
 
@@ -79,6 +80,8 @@ def run_simulation(command, config_path, template_path=None, template_text=None,
                 print('\n'.join('{key}: {param}'.format(key=key, param=param) for key, param in zip(keys, param_set)))
             proc = subprocess.Popen(command.format(sim_id=sim_id), shell=True)
             processes.append(proc)
+            if delay:
+                time.sleep(delay)
 
     # Wait until all processes are finished
     for process in processes:
