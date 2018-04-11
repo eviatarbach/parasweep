@@ -20,16 +20,6 @@ class _Namer(ABC):
         pass
 
 
-class Hasher(_Namer):
-    def next(self, keys, param_set):
-        return hash(''.join(map(str, param_set))) % 65535
-
-
-class String(_Namer):
-    def next(self, keys, param_set):
-        return '_'.join('{key}={param}'.format(key=key, param=param) for key, param in zip(keys, param_set))
-
-
 class Sequential(_Namer):
     def __init__(self, length):
         self.count = -1
@@ -42,8 +32,8 @@ class Sequential(_Namer):
 
 def run_simulation(command, config_path, sweep_id=None, template_path=None,
                    template_text=None, single_parameters={},
-                   sweep_parameters={}, naming=String, build=False, run=True,
-                   verbose=True, delay=False):
+                   sweep_parameters={}, naming=Sequential, build=False,
+                   run=True, verbose=True, delay=False):
     '''
     EXAMPLES:
 
@@ -108,5 +98,7 @@ def run_simulation(command, config_path, sweep_id=None, template_path=None,
     sim_ids_array = xarray.DataArray(numpy.reshape(numpy.array(sim_ids),
                                                    lengths),
                                      coords=values, dims=keys)
+
+    sim_ids_array.to_netcdf('sim_ids{sweep_id}.nc'.format(sweep_id='_' + sweep_id if sweep_id else ''))
 
     return sim_ids_array
