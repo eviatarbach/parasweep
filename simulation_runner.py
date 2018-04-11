@@ -12,15 +12,25 @@ import xarray
 
 
 class _Namer(ABC):
+    """
+    Abstract class for assigning simulation IDs to simulation. Only the `next`
+    method has to be implemented.
+    """
     def __init__(self, **kwargs):
         pass
 
     @abstractmethod
     def next(self, keys, param_set):
+        """
+        Generate simulation ID for a given parameter set
+        """
         pass
 
 
 class Sequential(_Namer):
+    """
+    Name simulations with consecutive numbers and leading zeros
+    """
     def __init__(self, length):
         self.count = -1
         self.zfill = math.floor(math.log10(length - 1) + 1)
