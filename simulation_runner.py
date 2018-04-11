@@ -7,6 +7,8 @@ from functools import reduce
 from abc import ABC, abstractmethod
 
 from mako.template import Template
+import numpy
+import xarray
 
 
 class _Namer(ABC):
@@ -38,9 +40,10 @@ class Sequential(_Namer):
         return str(self.count).zfill(self.zfill)
 
 
-def run_simulation(command, config_path, template_path=None, template_text=None,
-                   single_parameters={}, sweep_parameters={}, naming=String,
-                   build=False, run=True, verbose=True, delay=False):
+def run_simulation(command, config_path, sweep_id=None, template_path=None,
+                   template_text=None, single_parameters={},
+                   sweep_parameters={}, naming=String, build=False, run=True,
+                   verbose=True, delay=False):
     '''
     EXAMPLES:
 
@@ -58,9 +61,9 @@ def run_simulation(command, config_path, template_path=None, template_text=None,
     if build:
         pass
 
-    sim_ids = []
     keys = list(sweep_parameters.keys())
-    values = sweep_parameters.values()
+    values = list(sweep_parameters.values())
+    lengths = [len(value) for value in values]
 
     if sweep_parameters:
         product = itertools.product(*values)
@@ -72,8 +75,9 @@ def run_simulation(command, config_path, template_path=None, template_text=None,
     else:
         config = Template(text=template_text, input_encoding='utf-8')
 
-    name_gen = naming(length=reduce(operator.mul, [len(value) for value in values], 1))
+    name_gen = naming(length=reduce(operator.mul, lengths, 1))
 
+    sim_ids = []
     processes = []
     for param_set in product:
         sweep_params = params.copy()
@@ -100,3 +104,9 @@ def run_simulation(command, config_path, template_path=None, template_text=None,
     # Wait until all processes are finished
     for process in processes:
         process.wait()
+
+    sim_ids_array = xarray.DataArray(numpy.reshape(numpy.array(sim_ids),
+                                                   lengths),
+                                     coords=values, dims=keys)
+
+    return sim_ids_array
