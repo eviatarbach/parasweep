@@ -44,14 +44,16 @@ def run_simulation(command, config_path, sweep_id=None, template_path=None,
                    template_text=None, single_parameters={},
                    sweep_parameters={}, naming=Sequential, build=False,
                    run=True, verbose=True, delay=False):
-    '''
+    r"""
     EXAMPLES:
 
-      >>> run_simulation('cat {sim_id}.txt', '{sim_id}.txt', template_text='Hello ${x*10}\n', sweep_parameters={'x': (1, 2, 3)}, verbose=False)
-      Hello 10
-      Hello 20
-      Hello 30
-    '''
+    >>> run_simulation('cat {sim_id}.txt', '{sim_id}.txt',
+    ...                template_text='Hello ${x*10}\n',
+    ...                sweep_parameters={'x': (1, 2, 3)}, verbose=False)
+    Hello 10
+    Hello 20
+    Hello 30
+    """
     if (((template_path is None) and (template_text is None))
         or (not (template_path is None) and not (template_text is None))):
         raise ValueError('Exactly one of `template_path` or `template_text` must be provided.')

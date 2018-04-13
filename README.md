@@ -5,4 +5,20 @@ Dependencies:
 - xarray
 - Mako
 
-TODO: logging and timing for each process, control how many processes to run at once, multiple nodes, cleaning/moving of generated files, post-processing, more examples, errors if not all parameters are used in template, formatters for templates (i.e., for Fortran number formats), command-line interface, Python functions, non-Cartesian product sweeps, restart from NetCDF
+TODO:
+- logging and timing for each process
+- control how many processes to run at once
+- multiple nodes (?)
+- cleaning/moving of generated files
+- post-processing
+- more examples, testing
+- errors if not all parameters are used in template
+- formatters for templates (i.e., for Fortran number formats)
+- command-line interface
+- Python functions
+- non-Cartesian product sweeps
+- restart from NetCDF
+- run without config template
+- interface with SLURM job arrays
+- sweep IDs
+- default templates (e.g., JSON)
