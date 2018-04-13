@@ -16,7 +16,7 @@ class _Namer(ABC):
     Abstract class for assigning simulation IDs to simulation. Only the `next`
     method has to be implemented.
     """
-    def __init__(self, **kwargs):
+    def start(self, length):
         pass
 
     @abstractmethod
@@ -31,9 +31,13 @@ class Sequential(_Namer):
     """
     Name simulations with consecutive numbers and leading zeros
     """
-    def __init__(self, length):
+    def __init__(self, zfill=None):
+        self.zfill = zfill
+
+    def start(self, length):
         self.count = -1
-        self.zfill = math.floor(math.log10(length - 1) + 1)
+        if self.zfill is None:
+            self.zfill = math.floor(math.log10(length - 1) + 1)
 
     def next(self, keys, param_set):
         self.count += 1
@@ -42,7 +46,7 @@ class Sequential(_Namer):
 
 def run_simulation(command, config_path, sweep_id=None, template_path=None,
                    template_text=None, single_parameters={},
-                   sweep_parameters={}, naming=Sequential, build=False,
+                   sweep_parameters={}, naming=Sequential(), build=False,
                    run=True, verbose=True, delay=False):
     r"""
     EXAMPLES:
@@ -77,7 +81,7 @@ def run_simulation(command, config_path, sweep_id=None, template_path=None,
     else:
         config = Template(text=template_text, input_encoding='utf-8')
 
-    name_gen = naming(length=reduce(operator.mul, lengths, 1))
+    naming.start(length=reduce(operator.mul, lengths, 1))
 
     sim_ids = []
     processes = []
@@ -87,7 +91,7 @@ def run_simulation(command, config_path, sweep_id=None, template_path=None,
             for index, value in enumerate(param_set):
                 sweep_params[keys[index]] = value
 
-        sim_id = name_gen.next(keys, sweep_params.values())
+        sim_id = naming.next(keys, sweep_params.values())
         sim_ids.append(sim_id)
 
         config_rendered = config.render_unicode(**sweep_params).encode('utf-8', 'replace')
