@@ -25,7 +25,7 @@ TODO:
 - non-Cartesian product sweeps
 - restart from NetCDF
 - run without config template
-- interface with SLURM job arrays
+- interface with SLURM job arrays (DRMAA)
 - sweep IDs
 - multiple configuration files
 - default templates (e.g., JSON)
