@@ -1,3 +1,11 @@
+"""
+Copyright Eviatar Bach (eviatarbach@protonmail.com) 2015–2018
+
+Licensed under the MIT License. See license text at
+https://opensource.org/licenses/MIT.
+
+Part of simulation_runner, https://github.com/eviatarbach/simulation_runner.
+"""
 import subprocess
 import itertools
 import time
@@ -31,11 +39,12 @@ class Sequential(_Namer):
     """
     Name simulations with consecutive numbers and leading zeros
     """
-    def __init__(self, zfill=None):
+    def __init__(self, zfill=None, start_at=0):
         self.zfill = zfill
+        self.start_at = start_at
 
     def start(self, length):
-        self.count = -1
+        self.count = self.start_at - 1
         if self.zfill is None:
             self.zfill = math.floor(math.log10(length - 1) + 1)
 
@@ -46,8 +55,8 @@ class Sequential(_Namer):
 
 def run_simulation(command, config_path, sweep_id=None, template_path=None,
                    template_text=None, single_parameters={},
-                   sweep_parameters={}, naming=Sequential(), build=False,
-                   run=True, verbose=True, delay=False):
+                   sweep_parameters={}, naming=Sequential(), run=True,
+                   verbose=True, delay=False):
     r"""
     EXAMPLES:
 
@@ -59,14 +68,10 @@ def run_simulation(command, config_path, sweep_id=None, template_path=None,
     Hello 30
     """
     if (((template_path is None) and (template_text is None))
-        or (not (template_path is None) and not (template_text is None))):
+            or (not (template_path is None) and not (template_text is None))):
         raise ValueError('Exactly one of `template_path` or `template_text` must be provided.')
 
     params = single_parameters.copy()
-
-    if build:
-        pass
-
     keys = list(sweep_parameters.keys())
     values = list(sweep_parameters.values())
     lengths = [len(value) for value in values]
@@ -101,7 +106,9 @@ def run_simulation(command, config_path, sweep_id=None, template_path=None,
         if run:
             if verbose:
                 print("Running simulation {sim_id} with parameters:".format(sim_id=sim_id))
-                print('\n'.join('{key}: {param}'.format(key=key, param=param) for key, param in zip(keys, param_set)))
+                print('\n'.join('{key}: {param}'.format(key=key,
+                                                        param=param)
+                                for key, param in zip(keys, param_set)))
             proc = subprocess.Popen(command.format(sim_id=sim_id), shell=True)
             processes.append(proc)
             if delay:
@@ -115,6 +122,11 @@ def run_simulation(command, config_path, sweep_id=None, template_path=None,
                                                    lengths),
                                      coords=values, dims=keys)
 
-    sim_ids_array.to_netcdf('sim_ids{sweep_id}.nc'.format(sweep_id='_' + sweep_id if sweep_id else ''))
+    if sweep_id:
+        sim_ids_filename = 'sim_ids_{sweep_id}.nc'.format(sweep_id=sweep_id)
+    else:
+        sim_ids_filename = 'sim_ids.nc'
+
+    sim_ids_array.to_netcdf(sim_ids_filename)
 
     return sim_ids_array
