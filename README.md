@@ -1,5 +1,11 @@
 A Python script for running simulations in parallel. Similar to GNU Parallel, but facilitates parameter sweeps by allowing you to insert parameters (using the [Mako template library](http://www.makotemplates.org/)) for each simulation instance into whatever configuration format your simulation uses.
 
+Advantages:
+- don't have to build a parser in your simulation, just use its current configuration files
+- easily specify parameter sweeps using ranges
+- convenient mapping between each parameter set and the simulation ID in the form of an N-dimensional array, allowing for slicing, etc.
+- easy post-processing with a Python function
+
 Dependencies:
 - numpy
 - xarray
@@ -21,4 +27,5 @@ TODO:
 - run without config template
 - interface with SLURM job arrays
 - sweep IDs
+- multiple configuration files
 - default templates (e.g., JSON)
