@@ -54,7 +54,7 @@ class Sequential(_Namer):
 
 
 def run_simulation(command, config_path, sweep_id=None, template_path=None,
-                   template_text=None, single_parameters={},
+                   template_text=None, fixed_parameters={},
                    sweep_parameters={}, naming=Sequential(), run=True,
                    verbose=True, delay=False):
     r"""
@@ -71,7 +71,7 @@ def run_simulation(command, config_path, sweep_id=None, template_path=None,
             or (not (template_path is None) and not (template_text is None))):
         raise ValueError('Exactly one of `template_path` or `template_text` must be provided.')
 
-    params = single_parameters.copy()
+    params = fixed_parameters.copy()
     keys = list(sweep_parameters.keys())
     values = list(sweep_parameters.values())
     lengths = [len(value) for value in values]
