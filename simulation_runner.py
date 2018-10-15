@@ -84,6 +84,9 @@ class _Dispatcher(ABC):
     def dispatch(self, command):
         pass
 
+    def wait(self):
+        pass
+
 
 class PythonSubprocessDispatcher(_Dispatcher):
 
@@ -93,6 +96,29 @@ class PythonSubprocessDispatcher(_Dispatcher):
 
     def wait(self):
         self.process.wait()
+
+
+def template_names(template):
+    """
+    Return all the used identifiers in the template.
+
+    From Igonato's code at https://stackoverflow.com/a/23577289/622408.
+    """
+    from mako import lexer, codegen
+
+    lexer = lexer.Lexer(template)
+    node = lexer.parse()
+    # ^ The node is the root element for the parse tree.
+    # The tree contains all the data from a template
+    # needed for the code generation process
+
+    # Dummy compiler. _Identifiers class requires one
+    # but only interested in the reserved_names field
+    compiler = lambda: None
+    compiler.reserved_names = set()
+
+    identifiers = codegen._Identifiers(compiler, node)
+    return identifiers.undeclared
 
 
 def run_simulation(command, config_path, sweep_id=None, template_path=None,
@@ -111,6 +137,16 @@ def run_simulation(command, config_path, sweep_id=None, template_path=None,
     Hello 20
     Hello 30
 
+    >>> run_simulation('cat {sim_id}.txt', '{sim_id}.txt',
+    ...                template_text='Hello ${x*10} ${z}\n',
+    ...                sweep_parameters={'x': [1, 2, 3]}, verbose=False)
+    NameError: Undefined
+
+    >>> run_simulation('cat {sim_id}.txt', '{sim_id}.txt',
+    ...                template_text='Hello ${x*10}\n',
+    ...                sweep_parameters={'x': [1, 2, 3], 'y': [4]},
+                       verbose=False)
+    NameError: The names {'y'} are not used in the template.
     """
     if (((template_path is None) and (template_text is None))
             or (not (template_path is None) and not (template_text is None))):
@@ -127,9 +163,16 @@ def run_simulation(command, config_path, sweep_id=None, template_path=None,
         product = [params]
 
     if template_path:
-        config = Template(filename=template_path, input_encoding='utf-8')
+        config = Template(filename=template_path, input_encoding='utf-8',
+                          strict_undefined=True)
     else:
-        config = Template(text=template_text, input_encoding='utf-8')
+        config = Template(text=template_text, input_encoding='utf-8',
+                          strict_undefined=True)
+
+    config_names = template_names(config.source)
+    unused_names = set(keys) - config_names
+    if unused_names:
+        raise NameError('The names {unused_names} are not used in the template.'.format(unused_names=unused_names))
 
     naming.start(length=reduce(operator.mul, lengths, 1))
 

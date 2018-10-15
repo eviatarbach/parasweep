@@ -19,7 +19,6 @@ TODO:
 - cleaning/moving of generated files
 - post-processing
 - more examples, testing
-- errors if not all parameters are used in template
 - formatters for templates (i.e., for Fortran number formats)
 - command-line interface
 - Python functions
@@ -27,6 +26,6 @@ TODO:
 - restart from NetCDF
 - run without config template
 - interface with SLURM job arrays (DRMAA)
-- sweep IDs
+- use sweep IDs with sim IDs, auto-generate sweep IDs
 - multiple configuration files
 - default templates (e.g., JSON)
