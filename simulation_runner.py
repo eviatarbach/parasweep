@@ -35,7 +35,7 @@ class _Namer(ABC):
         pass
 
 
-class Sequential(_Namer):
+class SequentialNamer(_Namer):
     """
     Name simulations with consecutive numbers and leading zeros.
 
@@ -78,10 +78,28 @@ class Sequential(_Namer):
         return str(self.count).zfill(self.zfill)
 
 
+class _Dispatcher(ABC):
+
+    @abstractmethod
+    def dispatch(self, command):
+        pass
+
+
+class PythonSubprocessDispatcher(_Dispatcher):
+
+    def dispatch(self, command):
+        self.process = subprocess.Popen(command, shell=True)
+        return self
+
+    def wait(self):
+        self.process.wait()
+
+
 def run_simulation(command, config_path, sweep_id=None, template_path=None,
                    template_text=None, fixed_parameters={},
-                   sweep_parameters={}, naming=Sequential(), run=True,
-                   verbose=True, delay=False):
+                   sweep_parameters={}, naming=SequentialNamer(),
+                   dispatcher=PythonSubprocessDispatcher,
+                   run=True, verbose=True, delay=False, wait=False):
     r"""
     Run parameter sweeps.
 
@@ -136,14 +154,16 @@ def run_simulation(command, config_path, sweep_id=None, template_path=None,
                 print('\n'.join('{key}: {param}'.format(key=key,
                                                         param=param)
                                 for key, param in zip(keys, param_set)))
-            proc = subprocess.Popen(command.format(sim_id=sim_id), shell=True)
+            proc = dispatcher()
+            proc.dispatch(command.format(sim_id=sim_id))
             processes.append(proc)
             if delay:
                 time.sleep(delay)
 
     # Wait until all processes are finished
-    for process in processes:
-        process.wait()
+    if wait:
+        for process in processes:
+            process.wait()
 
     sim_ids_array = xarray.DataArray(numpy.reshape(numpy.array(sim_ids),
                                                    lengths),
