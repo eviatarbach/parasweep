@@ -121,32 +121,36 @@ def template_names(template):
     return identifiers.undeclared
 
 
-def run_simulation(command, config_path, sweep_id=None, template_path=None,
-                   template_text=None, fixed_parameters={},
-                   sweep_parameters={}, naming=SequentialNamer(),
-                   dispatcher=PythonSubprocessDispatcher,
-                   run=True, verbose=True, delay=False, wait=False):
+def run_sweep(command, config_path, sweep_id=None, template_path=None,
+              template_text=None, fixed_parameters={},
+              sweep_parameters={}, naming=SequentialNamer(),
+              dispatcher=PythonSubprocessDispatcher,
+              run=True, verbose=True, delay=False, wait=False):
     r"""
     Run parameter sweeps.
 
+    This function runs the program with the Cartesian product of the parameter
+    ranges.
+
     EXAMPLES:
-    >>> run_simulation('cat {sim_id}.txt', '{sim_id}.txt',
-    ...                template_text='Hello ${x*10}\n',
-    ...                sweep_parameters={'x': [1, 2, 3]}, verbose=False)
+    >>> run_sweep('cat {sim_id}.txt', '{sim_id}.txt',
+    ...           template_text='Hello ${x*10}\n',
+    ...           sweep_parameters={'x': [1, 2, 3]}, verbose=False)
     Hello 10
     Hello 20
     Hello 30
 
-    >>> run_simulation('cat {sim_id}.txt', '{sim_id}.txt',
-    ...                template_text='Hello ${x*10} ${z}\n',
-    ...                sweep_parameters={'x': [1, 2, 3]}, verbose=False)
+    >>> run_sweep('cat {sim_id}.txt', '{sim_id}.txt',
+    ...           template_text='Hello ${x*10} ${z}\n',
+    ...           sweep_parameters={'x': [1, 2, 3]}, verbose=False)
     NameError: Undefined
 
-    >>> run_simulation('cat {sim_id}.txt', '{sim_id}.txt',
-    ...                template_text='Hello ${x*10}\n',
-    ...                sweep_parameters={'x': [1, 2, 3], 'y': [4]},
-                       verbose=False)
+    >>> run_sweep('cat {sim_id}.txt', '{sim_id}.txt',
+    ...           template_text='Hello ${x*10}\n',
+    ...           sweep_parameters={'x': [1, 2, 3], 'y': [4]},
+    ...           verbose=False)
     NameError: The names {'y'} are not used in the template.
+
     """
     if (((template_path is None) and (template_text is None))
             or (not (template_path is None) and not (template_text is None))):
