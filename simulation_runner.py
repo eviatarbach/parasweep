@@ -8,44 +8,21 @@ Part of simulation_runner, https://github.com/eviatarbach/simulation_runner.
 """
 from namers import SequentialNamer
 from dispatchers import PythonSubprocessDispatcher
+from templates import MakoTemplate
 
 import itertools
 import time
 import operator
 from functools import reduce
 
-from mako.template import Template
 import numpy
 import xarray
-
-
-def template_names(template):
-    """
-    Return all the used identifiers in the template.
-
-    From Igonato's code at https://stackoverflow.com/a/23577289/622408.
-    """
-    from mako import lexer, codegen
-
-    lexer = lexer.Lexer(template)
-    node = lexer.parse()
-    # ^ The node is the root element for the parse tree.
-    # The tree contains all the data from a template
-    # needed for the code generation process
-
-    # Dummy compiler. _Identifiers class requires one
-    # but only interested in the reserved_names field
-    compiler = lambda: None
-    compiler.reserved_names = set()
-
-    identifiers = codegen._Identifiers(compiler, node)
-    return identifiers.undeclared
 
 
 def run_sweep(command, config_path, sweep_id=None, template_path=None,
               template_text=None, fixed_parameters={},
               sweep_parameters={}, naming=SequentialNamer(),
-              dispatcher=PythonSubprocessDispatcher,
+              dispatcher=PythonSubprocessDispatcher, template=MakoTemplate,
               run=True, verbose=True, delay=False, wait=False):
     r"""
     Run parameter sweeps.
@@ -88,16 +65,9 @@ def run_sweep(command, config_path, sweep_id=None, template_path=None,
         product = [params]
 
     if template_path:
-        config = Template(filename=template_path, input_encoding='utf-8',
-                          strict_undefined=True)
+        config = template(path=template_path)
     else:
-        config = Template(text=template_text, input_encoding='utf-8',
-                          strict_undefined=True)
-
-    config_names = template_names(config.source)
-    unused_names = set(keys) - config_names
-    if unused_names:
-        raise NameError('The names {unused_names} are not used in the template.'.format(unused_names=unused_names))
+        config = template(text=template_text)
 
     naming.start(length=reduce(operator.mul, lengths, 1))
 
@@ -112,10 +82,9 @@ def run_sweep(command, config_path, sweep_id=None, template_path=None,
         sim_id = naming.next(keys, sweep_params.values())
         sim_ids.append(sim_id)
 
-        config_rendered = config.render_unicode(**sweep_params).encode('utf-8', 'replace')
-        config_file = open(config_path.format(sim_id=sim_id), 'wb')
-        config_file.write(config_rendered)
-        config_file.close()
+        config_rendered = config.render(sweep_params)
+        with open(config_path.format(sim_id=sim_id), 'wb') as config_file:
+            config_file.write(config_rendered)
         if run:
             if verbose:
                 print("Running simulation {sim_id} with parameters:".format(sim_id=sim_id))

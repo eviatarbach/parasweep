@@ -1,6 +1,7 @@
 import math
 from abc import ABC, abstractmethod
 
+
 class _Namer(ABC):
     """
     Abstract class for assigning simulation IDs to simulation.
