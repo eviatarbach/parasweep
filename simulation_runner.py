@@ -8,7 +8,7 @@ Part of simulation_runner, https://github.com/eviatarbach/simulation_runner.
 """
 from namers import SequentialNamer
 from dispatchers import PythonSubprocessDispatcher
-from templates import MakoTemplate
+from templates import PythonFormatTemplate, MakoTemplate
 
 import itertools
 import time
@@ -22,7 +22,8 @@ import xarray
 def run_sweep(command, config_path, sweep_id=None, template_path=None,
               template_text=None, fixed_parameters={},
               sweep_parameters={}, naming=SequentialNamer(),
-              dispatcher=PythonSubprocessDispatcher, template=MakoTemplate,
+              dispatcher=PythonSubprocessDispatcher,
+              template_engine=PythonFormatTemplate,
               run=True, verbose=True, delay=False, wait=False):
     r"""
     Run parameter sweeps.
@@ -33,26 +34,33 @@ def run_sweep(command, config_path, sweep_id=None, template_path=None,
     EXAMPLES:
     >>> run_sweep('cat {sim_id}.txt', '{sim_id}.txt',
     ...           template_text='Hello ${x*10}\n',
-    ...           sweep_parameters={'x': [1, 2, 3]}, verbose=False)
+    ...           sweep_parameters={'x': [1, 2, 3]}, verbose=False,
+    ...           template_engine=MakoTemplate)
     Hello 10
     Hello 20
     Hello 30
 
     >>> run_sweep('cat {sim_id}.txt', '{sim_id}.txt',
     ...           template_text='Hello ${x*10} ${z}\n',
-    ...           sweep_parameters={'x': [1, 2, 3]}, verbose=False)
+    ...           sweep_parameters={'x': [1, 2, 3]}, verbose=False,
+    ...           template_engine=MakoTemplate)
     NameError: Undefined
 
     >>> run_sweep('cat {sim_id}.txt', '{sim_id}.txt',
     ...           template_text='Hello ${x*10}\n',
     ...           sweep_parameters={'x': [1, 2, 3], 'y': [4]},
-    ...           verbose=False)
+    ...           verbose=False, template_engine=MakoTemplate)
     NameError: The names {'y'} are not used in the template.
 
     """
     if (((template_path is None) and (template_text is None))
             or (not (template_path is None) and not (template_text is None))):
         raise ValueError('Exactly one of `template_path` or `template_text` must be provided.')
+
+    if template_path:
+        config = template_engine(path=template_path)
+    else:
+        config = template_engine(text=template_text)
 
     params = fixed_parameters.copy()
     keys = list(sweep_parameters.keys())
@@ -63,11 +71,6 @@ def run_sweep(command, config_path, sweep_id=None, template_path=None,
         product = itertools.product(*values)
     else:
         product = [params]
-
-    if template_path:
-        config = template(path=template_path)
-    else:
-        config = template(text=template_text)
 
     naming.start(length=reduce(operator.mul, lengths, 1))
 
@@ -82,7 +85,7 @@ def run_sweep(command, config_path, sweep_id=None, template_path=None,
         sim_id = naming.next(keys, sweep_params.values())
         sim_ids.append(sim_id)
 
-        config_rendered = config.render(sweep_params)
+        config_rendered = config.render(sweep_params).encode('utf-8', 'replace')
         with open(config_path.format(sim_id=sim_id), 'wb') as config_file:
             config_file.write(config_rendered)
         if run:

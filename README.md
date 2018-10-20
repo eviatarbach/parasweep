@@ -1,4 +1,6 @@
-A Python script for running simulations in parallel. Similar to GNU Parallel, but facilitates parameter sweeps by allowing you to insert parameters (using the [Mako template library](http://www.makotemplates.org/)) for each simulation instance into whatever configuration format your simulation uses.
+A Python script for running simulations in parallel. Similar to GNU Parallel, but facilitates parameter sweeps by allowing you to insert parameters for each simulation instance into whatever configuration format your simulation uses.
+
+By default, Python format strings are used. Optionally, you can also use the [Mako template library](http://www.makotemplates.org/), which is more powerful.
 
 Advantages:
 - don't have to build a parser in your simulation, just use its current configuration files
@@ -10,7 +12,7 @@ Advantages:
 Dependencies:
 - numpy
 - xarray
-- Mako
+- Mako (optional)
 
 TODO:
 - logging and timing for each process
