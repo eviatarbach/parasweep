@@ -13,6 +13,7 @@ Dependencies:
 - numpy
 - xarray
 - Mako (optional)
+- drmaa-python (optional)
 
 TODO:
 - logging and timing for each process

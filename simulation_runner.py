@@ -7,7 +7,7 @@ https://opensource.org/licenses/MIT.
 Part of simulation_runner, https://github.com/eviatarbach/simulation_runner.
 """
 from namers import SequentialNamer
-from dispatchers import PythonSubprocessDispatcher
+from dispatchers import PythonSubprocessDispatcher, DRMAADispatcher
 from templates import PythonFormatTemplate, MakoTemplate
 
 import itertools
@@ -24,7 +24,7 @@ def run_sweep(command, config_path, sweep_id=None, template_path=None,
               sweep_parameters={}, naming=SequentialNamer(),
               dispatcher=PythonSubprocessDispatcher,
               template_engine=PythonFormatTemplate,
-              run=True, verbose=True, delay=False, wait=False):
+              run=True, delay=False, wait=False, verbose=True):
     r"""
     Run parameter sweeps.
 
@@ -52,10 +52,19 @@ def run_sweep(command, config_path, sweep_id=None, template_path=None,
     ...           verbose=False, template_engine=MakoTemplate)
     NameError: The names {'y'} are not used in the template.
 
+    >>> run_sweep('cat {sim_id}.txt', '{sim_id}.txt',
+    ...           template_text='Hello {x:.2f}\n',
+    ...           sweep_parameters={'x': [1/3, 2/3, 3/3]}, verbose=False)
+    Hello 0.33
+    Hello 0.67
+    Hello 1.00
     """
     if (((template_path is None) and (template_text is None))
             or (not (template_path is None) and not (template_text is None))):
         raise ValueError('Exactly one of `template_path` or `template_text` must be provided.')
+
+    if wait and (not run):
+        raise ValueError("Can't wait if not running.")
 
     if template_path:
         config = template_engine(path=template_path)
@@ -75,7 +84,11 @@ def run_sweep(command, config_path, sweep_id=None, template_path=None,
     naming.start(length=reduce(operator.mul, lengths, 1))
 
     sim_ids = []
-    processes = []
+
+    if run:
+        processes = []
+        proc = dispatcher()
+
     for param_set in product:
         sweep_params = params.copy()
         if keys:
@@ -94,14 +107,13 @@ def run_sweep(command, config_path, sweep_id=None, template_path=None,
                 print('\n'.join('{key}: {param}'.format(key=key,
                                                         param=param)
                                 for key, param in zip(keys, param_set)))
-            proc = dispatcher()
             proc.dispatch(command.format(sim_id=sim_id))
             processes.append(proc)
             if delay:
                 time.sleep(delay)
 
     # Wait until all processes are finished
-    if wait:
+    if wait and run:
         for process in processes:
             process.wait()
 
