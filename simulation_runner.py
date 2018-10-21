@@ -13,6 +13,7 @@ from templates import PythonFormatTemplate, MakoTemplate
 import itertools
 import time
 import operator
+import datetime
 from functools import reduce
 
 import numpy
@@ -20,11 +21,10 @@ import xarray
 
 
 def run_sweep(command, config_path, sweep_id=None, template_path=None,
-              template_text=None, fixed_parameters={},
-              sweep_parameters={}, naming=SequentialNamer(),
-              dispatcher=PythonSubprocessDispatcher,
-              template_engine=PythonFormatTemplate,
-              run=True, delay=False, wait=False, verbose=True):
+              template_text=None, fixed_parameters={}, sweep_parameters={},
+              naming=SequentialNamer(), dispatcher=PythonSubprocessDispatcher,
+              template_engine=PythonFormatTemplate, run=True, delay=False,
+              wait=False, verbose=True, param_array=True):
     r"""
     Run parameter sweeps.
 
@@ -61,10 +61,12 @@ def run_sweep(command, config_path, sweep_id=None, template_path=None,
     """
     if (((template_path is None) and (template_text is None))
             or (not (template_path is None) and not (template_text is None))):
-        raise ValueError('Exactly one of `template_path` or `template_text` must be provided.')
+        raise ValueError('Exactly one of `template_path` or `template_text` '
+                         'must be provided.')
 
-    if wait and (not run):
-        raise ValueError("Can't wait if not running.")
+    if not sweep_id:
+        current_time = datetime.datetime.now()
+        sweep_id = current_time.strftime('%Y-%m-%dT%H:%M:%S')
 
     if template_path:
         config = template_engine(path=template_path)
@@ -98,12 +100,14 @@ def run_sweep(command, config_path, sweep_id=None, template_path=None,
         sim_id = naming.next(keys, sweep_params.values())
         sim_ids.append(sim_id)
 
-        config_rendered = config.render(sweep_params).encode('utf-8', 'replace')
+        config_rendered = config.render(sweep_params).encode('utf-8',
+                                                             'replace')
         with open(config_path.format(sim_id=sim_id), 'wb') as config_file:
             config_file.write(config_rendered)
         if run:
             if verbose:
-                print("Running simulation {sim_id} with parameters:".format(sim_id=sim_id))
+                print("Running simulation {sim_id} with "
+                      "parameters:".format(sim_id=sim_id))
                 print('\n'.join('{key}: {param}'.format(key=key,
                                                         param=param)
                                 for key, param in zip(keys, param_set)))
@@ -117,15 +121,13 @@ def run_sweep(command, config_path, sweep_id=None, template_path=None,
         for process in processes:
             process.wait()
 
-    sim_ids_array = xarray.DataArray(numpy.reshape(numpy.array(sim_ids),
-                                                   lengths),
-                                     coords=values, dims=keys)
+    if param_array:
+        sim_ids_array = xarray.DataArray(numpy.reshape(numpy.array(sim_ids),
+                                                       lengths),
+                                         coords=values, dims=keys)
 
-    if sweep_id:
         sim_ids_filename = 'sim_ids_{sweep_id}.nc'.format(sweep_id=sweep_id)
-    else:
-        sim_ids_filename = 'sim_ids.nc'
 
-    sim_ids_array.to_netcdf(sim_ids_filename)
+        sim_ids_array.to_netcdf(sim_ids_filename)
 
-    return sim_ids_array
+        return sim_ids_array
