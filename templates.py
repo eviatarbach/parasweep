@@ -9,10 +9,12 @@ class _Template(ABC):
     Make sure to implement errors for providing parameters not present in the
     template, and for using parameters in the template that are not provided.
     """
+
     def __init__(self, text=None, path=None):
         if (((path is None) and (text is None))
                 or (not (path is None) and not (text is None))):
-            raise ValueError('Exactly one of `path` or `text` must be provided.')
+            raise ValueError('Exactly one of `path` or `text` must be '
+                             'provided.')
         self.text = text
         self.path = path
         self._load()
@@ -35,14 +37,17 @@ class PythonFormatTemplate(_Template):
 
     def render(self, params):
         keys = params.keys()
-        config_names = set([elem[1] for elem in Formatter().parse(self.template) if elem[1]])
+        config_names = set([elem[1] for elem in
+                            Formatter().parse(self.template) if elem[1]])
         unused_names = set(keys) - config_names
         if unused_names:
-            raise NameError('The names {unused_names} are not used in the template.'.format(unused_names=unused_names))
+            raise NameError('The names {unused_names} are not used in the '
+                            'template.'.format(unused_names=unused_names))
         try:
             return self.template.format(**params)
         except KeyError as key:
-            raise NameError('The name {key} is used in the template but not provided.'.format(key=key))
+            raise NameError('The name {key} is used in the template but not '
+                            'provided.'.format(key=key))
 
 
 def _mako_template_names(template):
@@ -74,7 +79,8 @@ class MakoTemplate(_Template):
         from mako.template import Template
 
         if self.path:
-            self.template = Template(filename=self.path, input_encoding='utf-8',
+            self.template = Template(filename=self.path,
+                                     input_encoding='utf-8',
                                      strict_undefined=True)
         else:
             self.template = Template(text=self.text, input_encoding='utf-8',
@@ -85,5 +91,6 @@ class MakoTemplate(_Template):
         config_names = _mako_template_names(self.template.source)
         unused_names = set(keys) - config_names
         if unused_names:
-            raise NameError('The names {unused_names} are not used in the template.'.format(unused_names=unused_names))
+            raise NameError('The names {unused_names} are not used in the '
+                            'template.'.format(unused_names=unused_names))
         return self.template.render_unicode(**params)

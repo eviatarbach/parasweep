@@ -10,8 +10,8 @@ Advantages:
 - easy post-processing with a Python function
 
 Dependencies:
-- numpy
-- xarray
+- xarray (recommended, for parameter arrays)
+- numpy (recommended, for parameter arrays)
 - Mako (optional)
 - drmaa-python (optional)
 

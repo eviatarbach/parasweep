@@ -16,9 +16,6 @@ import operator
 import datetime
 from functools import reduce
 
-import numpy
-import xarray
-
 
 def run_sweep(command, config_path, sweep_id=None, template_path=None,
               template_text=None, fixed_parameters={}, sweep_parameters={},
@@ -58,6 +55,7 @@ def run_sweep(command, config_path, sweep_id=None, template_path=None,
     Hello 0.33
     Hello 0.67
     Hello 1.00
+
     """
     if (((template_path is None) and (template_text is None))
             or (not (template_path is None) and not (template_text is None))):
@@ -88,8 +86,7 @@ def run_sweep(command, config_path, sweep_id=None, template_path=None,
     sim_ids = []
 
     if run:
-        processes = []
-        proc = dispatcher()
+        session = dispatcher()
 
     for param_set in product:
         sweep_params = params.copy()
@@ -111,17 +108,17 @@ def run_sweep(command, config_path, sweep_id=None, template_path=None,
                 print('\n'.join('{key}: {param}'.format(key=key,
                                                         param=param)
                                 for key, param in zip(keys, param_set)))
-            proc.dispatch(command.format(sim_id=sim_id))
-            processes.append(proc)
+            session.dispatch(command.format(sim_id=sim_id))
             if delay:
                 time.sleep(delay)
 
-    # Wait until all processes are finished
     if wait and run:
-        for process in processes:
-            process.wait()
+        session.wait()
 
     if param_array:
+        import xarray
+        import numpy
+
         sim_ids_array = xarray.DataArray(numpy.reshape(numpy.array(sim_ids),
                                                        lengths),
                                          coords=values, dims=keys)
