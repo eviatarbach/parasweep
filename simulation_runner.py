@@ -17,7 +17,7 @@ import datetime
 from functools import reduce
 
 
-def run_sweep(command, config_path, sweep_id=None, template_path=None,
+def run_sweep(command, config_path, sweep_id=None, template_paths=None,
               template_text=None, fixed_parameters={}, sweep_parameters={},
               naming=SequentialNamer(), dispatcher=PythonSubprocessDispatcher,
               template_engine=PythonFormatTemplate, run=True, delay=False,
@@ -57,17 +57,17 @@ def run_sweep(command, config_path, sweep_id=None, template_path=None,
     Hello 1.00
 
     """
-    if (((template_path is None) and (template_text is None))
-            or (not (template_path is None) and not (template_text is None))):
-        raise ValueError('Exactly one of `template_path` or `template_text` '
+    if (((template_paths is None) and (template_text is None))
+            or (not (template_paths is None) and not (template_text is None))):
+        raise ValueError('Exactly one of `template_paths` or `template_text` '
                          'must be provided.')
 
     if not sweep_id:
         current_time = datetime.datetime.now()
         sweep_id = current_time.strftime('%Y-%m-%dT%H:%M:%S')
 
-    if template_path:
-        config = template_engine(path=template_path)
+    if template_paths:
+        config = template_engine(paths=template_paths)
     else:
         config = template_engine(text=template_text)
 

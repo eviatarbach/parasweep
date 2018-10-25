@@ -10,13 +10,13 @@ class _Template(ABC):
     template, and for using parameters in the template that are not provided.
     """
 
-    def __init__(self, text=None, path=None):
-        if (((path is None) and (text is None))
-                or (not (path is None) and not (text is None))):
-            raise ValueError('Exactly one of `path` or `text` must be '
+    def __init__(self, text=None, paths=None):
+        if (((paths is None) and (text is None))
+                or (not (paths is None) and not (text is None))):
+            raise ValueError('Exactly one of `paths` or `text` must be '
                              'provided.')
         self.text = text
-        self.path = path
+        self.paths = paths
         self._load()
 
     @abstractmethod
@@ -30,8 +30,8 @@ class _Template(ABC):
 class PythonFormatTemplate(_Template):
 
     def _load(self):
-        if self.path:
-            self.template = open(self.path, 'r')
+        if self.paths:
+            self.template = open(self.paths, 'r')
         else:
             self.template = self.text
 
@@ -78,8 +78,8 @@ class MakoTemplate(_Template):
     def _load(self):
         from mako.template import Template
 
-        if self.path:
-            self.template = Template(filename=self.path,
+        if self.paths:
+            self.template = Template(filename=self.paths,
                                      input_encoding='utf-8',
                                      strict_undefined=True)
         else:

@@ -18,7 +18,6 @@ Dependencies:
 TODO:
 - logging and timing for each process
 - control how many processes to run at once
-- multiple nodes (?)
 - cleaning/moving of generated files
 - post-processing
 - more examples, testing
@@ -28,7 +27,5 @@ TODO:
 - non-Cartesian product sweeps
 - restart from NetCDF
 - run without config template
-- interface with SLURM job arrays (DRMAA)
-- use sweep IDs with sim IDs, auto-generate sweep IDs
 - multiple configuration files
 - default templates (e.g., JSON)
