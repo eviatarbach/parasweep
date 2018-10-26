@@ -17,7 +17,7 @@ import datetime
 from functools import reduce
 
 
-def run_sweep(command, config_path, sweep_id=None, template_paths=None,
+def run_sweep(command, config_paths, sweep_id=None, template_paths=None,
               template_text=None, fixed_parameters={}, sweep_parameters={},
               naming=SequentialNamer(), dispatcher=PythonSubprocessDispatcher,
               template_engine=PythonFormatTemplate, run=True, delay=False,
@@ -29,7 +29,7 @@ def run_sweep(command, config_path, sweep_id=None, template_paths=None,
     ranges.
 
     EXAMPLES:
-    >>> run_sweep('cat {sim_id}.txt', '{sim_id}.txt',
+    >>> run_sweep('cat {sim_id}.txt', ['{sim_id}.txt'],
     ...           template_text='Hello ${x*10}\n',
     ...           sweep_parameters={'x': [1, 2, 3]}, verbose=False,
     ...           template_engine=MakoTemplate)
@@ -37,19 +37,19 @@ def run_sweep(command, config_path, sweep_id=None, template_paths=None,
     Hello 20
     Hello 30
 
-    >>> run_sweep('cat {sim_id}.txt', '{sim_id}.txt',
+    >>> run_sweep('cat {sim_id}.txt', ['{sim_id}.txt'],
     ...           template_text='Hello ${x*10} ${z}\n',
     ...           sweep_parameters={'x': [1, 2, 3]}, verbose=False,
     ...           template_engine=MakoTemplate)
     NameError: Undefined
 
-    >>> run_sweep('cat {sim_id}.txt', '{sim_id}.txt',
+    >>> run_sweep('cat {sim_id}.txt', ['{sim_id}.txt'],
     ...           template_text='Hello ${x*10}\n',
     ...           sweep_parameters={'x': [1, 2, 3], 'y': [4]},
     ...           verbose=False, template_engine=MakoTemplate)
     NameError: The names {'y'} are not used in the template.
 
-    >>> run_sweep('cat {sim_id}.txt', '{sim_id}.txt',
+    >>> run_sweep('cat {sim_id}.txt', ['{sim_id}.txt'],
     ...           template_text='Hello {x:.2f}\n',
     ...           sweep_parameters={'x': [1/3, 2/3, 3/3]}, verbose=False)
     Hello 0.33
@@ -62,14 +62,22 @@ def run_sweep(command, config_path, sweep_id=None, template_paths=None,
         raise ValueError('Exactly one of `template_paths` or `template_text` '
                          'must be provided.')
 
+    if isinstance(config_paths, str):
+        raise TypeError('`config_paths` must be a list of paths.')
+
+    if isinstance(template_paths, str):
+        raise TypeError('`template_paths` must be a list of paths.')
+
     if not sweep_id:
         current_time = datetime.datetime.now()
         sweep_id = current_time.strftime('%Y-%m-%dT%H:%M:%S')
 
     if template_paths:
-        config = template_engine(paths=template_paths)
+        configs = []
+        for template_path in template_paths:
+            configs.append(template_engine(path=template_path))
     else:
-        config = template_engine(text=template_text)
+        configs = [template_engine(text=template_text)]
 
     params = fixed_parameters.copy()
     keys = list(sweep_parameters.keys())
@@ -97,10 +105,11 @@ def run_sweep(command, config_path, sweep_id=None, template_paths=None,
         sim_id = naming.next(keys, sweep_params.values())
         sim_ids.append(sim_id)
 
-        config_rendered = config.render(sweep_params).encode('utf-8',
-                                                             'replace')
-        with open(config_path.format(sim_id=sim_id), 'wb') as config_file:
-            config_file.write(config_rendered)
+        for config, config_path in zip(configs, config_paths):
+            config_rendered = config.render(sweep_params).encode('utf-8',
+                                                                 'replace')
+            with open(config_path.format(sim_id=sim_id), 'wb') as config_file:
+                config_file.write(config_rendered)
         if run:
             if verbose:
                 print("Running simulation {sim_id} with "

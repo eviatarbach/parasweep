@@ -27,5 +27,4 @@ TODO:
 - non-Cartesian product sweeps
 - restart from NetCDF
 - run without config template
-- multiple configuration files
 - default templates (e.g., JSON)
