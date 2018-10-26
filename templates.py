@@ -10,13 +10,13 @@ class _Template(ABC):
     template, and for using parameters in the template that are not provided.
     """
 
-    def __init__(self, text=None, path=None):
-        if (((path is None) and (text is None))
-                or (not (path is None) and not (text is None))):
-            raise ValueError('Exactly one of `path` or `text` must be '
+    def __init__(self, texts=None, paths=None):
+        if (((paths is None) and (texts is None))
+                or (not (paths is None) and not (texts is None))):
+            raise ValueError('Exactly one of `paths` or `text` must be '
                              'provided.')
-        self.text = text
-        self.path = path
+        self.texts = texts
+        self.paths = paths
         self._load()
 
     @abstractmethod
@@ -30,24 +30,31 @@ class _Template(ABC):
 class PythonFormatTemplate(_Template):
 
     def _load(self):
-        if self.path:
-            self.template = open(self.path, 'r')
+        if self.paths:
+            self.templates = []
+            for path in self.paths:
+                with open(path, 'r') as template_file:
+                    self.templates.append(template_file.read())
         else:
-            self.template = self.text
+            self.templates = self.texts
 
     def render(self, params):
         keys = params.keys()
-        config_names = set([elem[1] for elem in
-                            Formatter().parse(self.template) if elem[1]])
-        unused_names = set(keys) - config_names
+        unused_names = set(keys)
+        rendered = []
+        for template in self.templates:
+            config_names = set([elem[1] for elem in
+                                Formatter().parse(template) if elem[1]])
+            unused_names -= config_names
+            try:
+                rendered.append(template.format(**params))
+            except KeyError as key:
+                raise NameError('The name {key} is used in the template but '
+                                'not provided.'.format(key=key))
         if unused_names:
             raise NameError('The names {unused_names} are not used in the '
                             'template.'.format(unused_names=unused_names))
-        try:
-            return self.template.format(**params)
-        except KeyError as key:
-            raise NameError('The name {key} is used in the template but not '
-                            'provided.'.format(key=key))
+        return rendered
 
 
 def _mako_template_names(template):
@@ -78,19 +85,25 @@ class MakoTemplate(_Template):
     def _load(self):
         from mako.template import Template
 
-        if self.path:
-            self.template = Template(filename=self.path,
-                                     input_encoding='utf-8',
-                                     strict_undefined=True)
+        if self.paths:
+            self.templates = []
+            for path in self.paths:
+                self.templates.append(Template(filename=path,
+                                               input_encoding='utf-8',
+                                               strict_undefined=True))
         else:
-            self.template = Template(text=self.text, input_encoding='utf-8',
-                                     strict_undefined=True)
+            self.templates = [Template(text=self.text, input_encoding='utf-8',
+                                       strict_undefined=True)]
 
     def render(self, params):
         keys = params.keys()
-        config_names = _mako_template_names(self.template.source)
-        unused_names = set(keys) - config_names
+        unused_names = set(keys)
+        rendered = []
+        for template in self.templates:
+            config_names = _mako_template_names(template.source)
+            unused_names -= config_names
+            rendered.append(template.render_unicode(**params))
         if unused_names:
             raise NameError('The names {unused_names} are not used in the '
                             'template.'.format(unused_names=unused_names))
-        return self.template.render_unicode(**params)
+        return rendered
