@@ -92,8 +92,11 @@ class MakoTemplate(_Template):
                                                input_encoding='utf-8',
                                                strict_undefined=True))
         else:
-            self.templates = [Template(text=self.text, input_encoding='utf-8',
-                                       strict_undefined=True)]
+            self.templates = []
+            for text in self.texts:
+                self.templates.append(Template(text=text,
+                                               input_encoding='utf-8',
+                                               strict_undefined=True))
 
     def render(self, params):
         keys = params.keys()
