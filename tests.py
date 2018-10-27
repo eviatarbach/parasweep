@@ -71,6 +71,25 @@ class TestSweep(unittest.TestCase):
 
         self.assertGreater(time.time() - start_time, 4)
 
+    def test_serial(self):
+        import time
+        from dispatchers import DRMAADispatcher
+
+        start_time = time.time()
+        run_sweep('sleep 2', ['{sim_id}.txt'],
+                  template_texts=['Hello {x}\n'],
+                  sweep_parameters={'x': [1, 2]}, serial=True)
+
+        self.assertGreater(time.time() - start_time, 4)
+
+        start_time = time.time()
+        run_sweep('sleep 2', ['{sim_id}.txt'],
+                  template_texts=['Hello {x}\n'],
+                  sweep_parameters={'x': [1, 2]}, dispatcher=DRMAADispatcher,
+                  serial=True)
+
+        self.assertGreater(time.time() - start_time, 4)
+
     def test_wait(self):
         out = open('out_test', 'w')
         out.close()

@@ -21,7 +21,7 @@ def run_sweep(command, config_paths, sweep_id=None, template_paths=None,
               template_texts=None, fixed_parameters={}, sweep_parameters={},
               naming=SequentialNamer(), dispatcher=PythonSubprocessDispatcher,
               template_engine=PythonFormatTemplate, run=True, delay=False,
-              wait=False, verbose=True, param_array=True):
+              wait=False, verbose=True, param_array=True, serial=False):
     r"""
     Run parameter sweeps.
 
@@ -114,12 +114,12 @@ def run_sweep(command, config_paths, sweep_id=None, template_paths=None,
                 print('\n'.join('{key}: {param}'.format(key=key,
                                                         param=param)
                                 for key, param in zip(keys, param_set)))
-            session.dispatch(command.format(sim_id=sim_id))
+            session.dispatch(command.format(sim_id=sim_id), serial)
             if delay:
                 time.sleep(delay)
 
     if wait and run:
-        session.wait()
+        session.wait_all()
 
     if param_array:
         import xarray
