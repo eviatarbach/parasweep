@@ -38,18 +38,6 @@ def run_sweep(command, config_paths, sweep_id=None, template_paths=None,
     Hello 30
 
     >>> run_sweep('cat {sim_id}.txt', ['{sim_id}.txt'],
-    ...           template_texts=['Hello ${x*10} ${z}\n'],
-    ...           sweep_parameters={'x': [1, 2, 3]}, verbose=False,
-    ...           template_engine=MakoTemplate)
-    NameError: Undefined
-
-    >>> run_sweep('cat {sim_id}.txt', ['{sim_id}.txt'],
-    ...           template_texts=['Hello ${x*10}\n'],
-    ...           sweep_parameters={'x': [1, 2, 3], 'y': [4]},
-    ...           verbose=False, template_engine=MakoTemplate)
-    NameError: The names {'y'} are not used in the template.
-
-    >>> run_sweep('cat {sim_id}.txt', ['{sim_id}.txt'],
     ...           template_texts=['Hello {x:.2f}\n'],
     ...           sweep_parameters={'x': [1/3, 2/3, 3/3]}, verbose=False)
     Hello 0.33
@@ -70,18 +58,15 @@ def run_sweep(command, config_paths, sweep_id=None, template_paths=None,
 
     """
     if (((template_paths is None) and (template_texts is None))
-            or (not (template_paths is None) and not (template_texts is None))):
-        raise ValueError('Exactly one of `template_paths` or `template_text` '
+            or (not (template_paths is None)
+                and not (template_texts is None))):
+        raise ValueError('Exactly one of `template_paths` or `template_texts` '
                          'must be provided.')
 
-    if isinstance(config_paths, str):
-        raise TypeError('`config_paths` must be a list of paths.')
-
-    if isinstance(template_paths, str):
-        raise TypeError('`template_paths` must be a list of paths.')
-
-    if isinstance(template_texts, str):
-        raise TypeError('`template_texts` must be a list of texts.')
+    if (isinstance(config_paths, str) or isinstance(template_paths, str)
+            or isinstance(template_texts, str)):
+        raise TypeError('`config_paths` and `template_paths` or'
+                        '`template_texts` must be a list.')
 
     if not sweep_id:
         current_time = datetime.datetime.now()

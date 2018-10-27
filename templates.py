@@ -13,7 +13,7 @@ class _Template(ABC):
     def __init__(self, texts=None, paths=None):
         if (((paths is None) and (texts is None))
                 or (not (paths is None) and not (texts is None))):
-            raise ValueError('Exactly one of `paths` or `text` must be '
+            raise ValueError('Exactly one of `paths` or `texts` must be '
                              'provided.')
         self.texts = texts
         self.paths = paths

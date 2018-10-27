@@ -2,6 +2,8 @@
 Tests will only work on UNIX-like systems.
 """
 from simulation_runner import run_sweep
+from namers import SequentialNamer
+from templates import PythonFormatTemplate
 
 import unittest
 
@@ -14,6 +16,15 @@ class TestSweep(unittest.TestCase):
                   sweep_parameters={'x': [1/3, 2/3, 3/3]})
         with open('out_test', 'r') as out:
             self.assertEqual(out.read(), 'Hello 0.33\nHello 0.67\nHello 1.00\n')
+
+    def test_single(self):
+        out = open('out_test', 'w')
+        out.close()
+        run_sweep('cat {sim_id}.txt >> out_test', ['{sim_id}.txt'],
+                  template_texts=['Hello {x}, {y}\n'],
+                  fixed_parameters={'x': 1, 'y': 2})
+        with open('out_test', 'r') as out:
+            self.assertEqual(out.read(), 'Hello 1, 2\n')
 
     def test_multiple_templates(self):
         out = open('out_test', 'w')
@@ -69,6 +80,23 @@ class TestSweep(unittest.TestCase):
         with open('out_test', 'r') as out:
             self.assertEqual(out.read(), 'Hello 1\nHello 1\nHello 1\n')
 
+    def test_errors(self):
+        with self.assertRaises(TypeError) as context:
+            run_sweep('cat {sim_id}.txt', '{sim_id}.txt',
+                      template_texts='Hello {x} {z}\n',
+                      sweep_parameters={'x': [1, 2, 3]})
+
+        self.assertEqual('`config_paths` and `template_paths` or'
+                         '`template_texts` must be a list.',
+                         str(context.exception))
+
+        with self.assertRaises(ValueError) as context:
+            run_sweep('cat {sim_id}.txt', '{sim_id}.txt',
+                      sweep_parameters={'x': [1, 2, 3]})
+
+        self.assertEqual('Exactly one of `template_paths` or `template_texts` '
+                         'must be provided.', str(context.exception))
+
 
 class TestPythonTemplates(unittest.TestCase):
     def test_errors(self):
@@ -87,6 +115,26 @@ class TestPythonTemplates(unittest.TestCase):
 
         self.assertEqual("The names {'y'} are not used in the template.",
                          str(context.exception))
+
+        with self.assertRaises(ValueError) as context:
+            PythonFormatTemplate()
+
+        self.assertEqual('Exactly one of `paths` or `texts` must be '
+                         'provided.', str(context.exception))
+
+    def test_paths(self):
+        out = open('out_test', 'w')
+        out.close()
+
+        with open('template_test.txt', 'w') as template_file:
+            template_file.write('Hello {x}\n')
+
+        run_sweep('cat {sim_id}.txt >> out_test', ['{sim_id}.txt'],
+                  template_paths=['template_test.txt'],
+                  sweep_parameters={'x': [1, 2, 3]})
+
+        with open('out_test', 'r') as out:
+            self.assertEqual(out.read(), 'Hello 1\nHello 2\nHello 3\n')
 
 
 class TestMakoTemplates(unittest.TestCase):
@@ -109,6 +157,42 @@ class TestMakoTemplates(unittest.TestCase):
 
         self.assertEqual("The names {'y'} are not used in the template.",
                          str(context.exception))
+
+    def test_paths(self):
+        from templates import MakoTemplate
+
+        out = open('out_test', 'w')
+        out.close()
+
+        with open('template_test.txt', 'w') as template_file:
+            template_file.write('Hello ${x}\n')
+
+        run_sweep('cat {sim_id}.txt >> out_test', ['{sim_id}.txt'],
+                  template_paths=['template_test.txt'],
+                  sweep_parameters={'x': [1, 2, 3]},
+                  template_engine=MakoTemplate)
+
+        with open('out_test', 'r') as out:
+            self.assertEqual(out.read(), 'Hello 1\nHello 2\nHello 3\n')
+
+
+class TestNamers(unittest.TestCase):
+    def test_sequential(self):
+        counter = SequentialNamer()
+        counter.start(length=11)
+
+        self.assertEqual(counter.next(['key1'], [['key_value1']]), '00')
+        self.assertEqual(counter.next(['key2'], [['key_value2']]), '01')
+
+        counter = SequentialNamer(zfill=3, start_at=3)
+        counter.start(length=2)
+
+        self.assertEqual(counter.next(['key1'], [['key_value1']]), '003')
+
+        counter.next(['key2'], [['key_value2']])
+
+        with self.assertRaises(StopIteration):
+            counter.next(['key3'], [['key_value3']])
 
 
 if __name__ == '__main__':
