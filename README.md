@@ -20,7 +20,7 @@ TODO:
 - control how many processes to run at once
 - cleaning/moving of generated files
 - post-processing
-- more examples, testing
+- more examples
 - formatters for templates (i.e., for Fortran number formats)
 - command-line interface
 - Python functions

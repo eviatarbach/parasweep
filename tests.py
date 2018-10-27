@@ -97,6 +97,14 @@ class TestSweep(unittest.TestCase):
         self.assertEqual('Exactly one of `template_paths` or `template_texts` '
                          'must be provided.', str(context.exception))
 
+    def test_param_array(self):
+        param_array = run_sweep('cat {sim_id}.txt', ['{sim_id}.txt'],
+                                template_texts=['Hello {x} {y} {z}\n'],
+                                sweep_parameters={'x': [1, 2], 'y': [3, 4, 5],
+                                                  'z': [6, 7, 8, 9]})
+        self.assertEqual(param_array.coords.dims, ('x', 'y', 'z'))
+        self.assertEqual(param_array.shape, (2, 3, 4))
+
 
 class TestPythonTemplates(unittest.TestCase):
     def test_errors(self):
