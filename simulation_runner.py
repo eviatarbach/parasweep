@@ -20,13 +20,72 @@ from functools import reduce
 def run_sweep(command, config_paths, sweep_id=None, template_paths=None,
               template_texts=None, sweep_parameters={}, parameter_sets=[],
               naming=SequentialNamer(), dispatcher=PythonSubprocessDispatcher,
-              template_engine=PythonFormatTemplate, run=True, delay=False,
-              wait=False, verbose=True, param_array=True, serial=False):
+              template_engine=PythonFormatTemplate, run=True, delay=0.0,
+              serial=False, wait=False, verbose=True, param_array=True):
     r"""
     Run parameter sweeps.
 
     This function runs the program with the Cartesian product of the parameter
     ranges.
+
+    ARGUMENTS:
+    - command (str, required):
+        The command to run. Must include '{sim_id}' indicating where the
+        simulation ID is to be inserted.
+    - config_paths (list, required):
+        List of paths indicating where the configuration files should be saved
+        after substitution of the parameters into the templates. Must be in the
+        same order as `template_paths` or `template_texts`.
+    One of the following:
+        - template_paths (list):
+            List of paths of templates to substitute parameters into. Must be
+            in the same order as `config_paths`.
+        - template_texts (list):
+            List of template strings to substitute parameters into. Must be
+            in the same order as `config_paths`.
+    One of the following:
+        - sweep_parameters (dict):
+            Using this option will do a grid sweep (Cartesian product).
+            Dictionary where the keys are the parameter names and the values
+            are lists of parameter values to sweep over. E.g.,
+            {'x': [1, 2], 'y': [3, 4]}
+        - parameter_sets (list):
+            Using this option will run a sweep with the provided parameter
+            sets. List of dictionaries where the keys are the parameter names
+            and the values are the fixed parameter values. E.g.,
+            [{'x': 1, 'y': 2}, {'x': 3, 'y': 4}]
+    - naming (namers._Namer instance, optional):
+        A _Namer object that specifies how to assign simulation IDs. See
+        namers.py for more information. By default, assigns simulation IDs
+        sequentially.
+    - dispatcher (dispatchers._Dispatcher class, optional):
+        A _Dispatcher class that specifies how to run the jobs. See
+        dispatchers.py for more information. By default, uses Python's
+        `subprocess` module.
+    - template_engine (templates._Template class, optional):
+        A _Template class that specifies the template engine to use. See
+        `templates.py` for more information. By default, uses Python format
+        strings.
+    - run (bool, optional):
+        Whether to run the parameter sweep. True by default.
+    - delay (float, optional):
+        How many seconds to delay between running successive simulations.
+        0.0 by default.
+    - serial (bool, optional):
+        Whether to run simulations serially, i.e., to wait for each simulation
+        to complete before executing the next one. Enabling this turns off
+        parallelism. False by default.
+    - wait (bool, optional):
+        Whether to wait for all simulations to complete before returning.
+        False by default.
+    - verbose (bool, optional):
+        Whether to print some information about each simulation as it is
+        launched. True by default.
+    - param_array (bool, optional):
+        Whether to return an N-dimensional labelled array (using `xarray`)
+        which maps the parameters to the simulation IDs. The array coordinates
+        correspond to each sweep parameter, while the values contain the
+        simulation IDs. True by default.
 
     EXAMPLES:
     >>> run_sweep('cat {sim_id}.txt', ['{sim_id}.txt'],
