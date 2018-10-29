@@ -22,7 +22,7 @@ class TestSweep(unittest.TestCase):
         out.close()
         run_sweep('cat {sim_id}.txt >> out_test', ['{sim_id}.txt'],
                   template_texts=['Hello {x}, {y}\n'],
-                  fixed_parameters={'x': 1, 'y': 2})
+                  sweep_parameters={'x': [1], 'y': [2]})
         with open('out_test', 'r') as out:
             self.assertEqual(out.read(), 'Hello 1, 2\n')
 
@@ -123,6 +123,16 @@ class TestSweep(unittest.TestCase):
                                                   'z': [6, 7, 8, 9]})
         self.assertEqual(param_array.coords.dims, ('x', 'y', 'z'))
         self.assertEqual(param_array.shape, (2, 3, 4))
+
+    def test_parameter_sets(self):
+        out = open('out_test', 'w')
+        out.close()
+        run_sweep('cat {sim_id}.txt >> out_test', ['{sim_id}.txt'],
+                  template_texts=['Hello {x}, {y}, {z}\n'],
+                  parameter_sets=[{'x': 2, 'y': 8, 'z': 5},
+                                  {'x': 1, 'y': -4, 'z': 9}], wait=True)
+        with open('out_test', 'r') as out:
+            self.assertEqual(out.read(), 'Hello 2, 8, 5\nHello 1, -4, 9\n')
 
 
 class TestPythonTemplates(unittest.TestCase):

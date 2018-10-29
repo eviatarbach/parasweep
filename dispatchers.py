@@ -35,6 +35,7 @@ class DRMAADispatcher(_Dispatcher):
         # an error
         if DRMAADispatcher.session is None:
             import drmaa
+
             self.session = drmaa.Session()
             self.session.initialize()
             DRMAADispatcher.session = self.session

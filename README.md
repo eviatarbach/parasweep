@@ -24,7 +24,6 @@ TODO:
 - formatters for templates (i.e., for Fortran number formats)
 - command-line interface
 - Python functions
-- non-Cartesian product sweeps
 - restart from NetCDF
 - run without config template
 - default templates (e.g., JSON)

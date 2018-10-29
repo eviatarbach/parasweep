@@ -18,7 +18,7 @@ from functools import reduce
 
 
 def run_sweep(command, config_paths, sweep_id=None, template_paths=None,
-              template_texts=None, fixed_parameters={}, sweep_parameters={},
+              template_texts=None, sweep_parameters={}, parameter_sets=[],
               naming=SequentialNamer(), dispatcher=PythonSubprocessDispatcher,
               template_engine=PythonFormatTemplate, run=True, delay=False,
               wait=False, verbose=True, param_array=True, serial=False):
@@ -63,6 +63,11 @@ def run_sweep(command, config_paths, sweep_id=None, template_paths=None,
         raise ValueError('Exactly one of `template_paths` or `template_texts` '
                          'must be provided.')
 
+    if ((sweep_parameters and parameter_sets)
+            or (not sweep_parameters and not parameter_sets)):
+        raise ValueError('Exactly one of `sweep_parameters` or '
+                         '`parameter_sets` must be provided.')
+
     if (isinstance(config_paths, str) or isinstance(template_paths, str)
             or isinstance(template_texts, str)):
         raise TypeError('`config_paths` and `template_paths` or'
@@ -77,17 +82,20 @@ def run_sweep(command, config_paths, sweep_id=None, template_paths=None,
     else:
         config = template_engine(texts=template_texts)
 
-    params = fixed_parameters.copy()
-    keys = list(sweep_parameters.keys())
-    values = list(sweep_parameters.values())
-    lengths = [len(value) for value in values]
-
     if sweep_parameters:
-        product = itertools.product(*values)
-    else:
-        product = [params]
+        keys = list(sweep_parameters.keys())
+        values = list(sweep_parameters.values())
 
-    naming.start(length=reduce(operator.mul, lengths, 1))
+        product = itertools.product(*values)
+        lengths = [len(value) for value in values]
+        sweep_length = reduce(operator.mul, lengths, 1)
+    else:
+        keys = parameter_sets[0].keys()
+
+        product = parameter_sets
+        sweep_length = len(parameter_sets)
+
+    naming.start(length=sweep_length)
 
     sim_ids = []
 
@@ -95,10 +103,12 @@ def run_sweep(command, config_paths, sweep_id=None, template_paths=None,
         session = dispatcher()
 
     for param_set in product:
-        sweep_params = params.copy()
-        if keys:
+        if sweep_parameters:
+            sweep_params = {}
             for index, value in enumerate(param_set):
                 sweep_params[keys[index]] = value
+        else:
+            sweep_params = param_set
 
         sim_id = naming.next(keys, sweep_params.values())
         sim_ids.append(sim_id)
@@ -113,7 +123,7 @@ def run_sweep(command, config_paths, sweep_id=None, template_paths=None,
                       "parameters:".format(sim_id=sim_id))
                 print('\n'.join('{key}: {param}'.format(key=key,
                                                         param=param)
-                                for key, param in zip(keys, param_set)))
+                                for key, param in sweep_params.items()))
             session.dispatch(command.format(sim_id=sim_id), serial)
             if delay:
                 time.sleep(delay)
@@ -121,7 +131,7 @@ def run_sweep(command, config_paths, sweep_id=None, template_paths=None,
     if wait and run:
         session.wait_all()
 
-    if param_array:
+    if param_array and sweep_parameters:
         import xarray
         import numpy
 
