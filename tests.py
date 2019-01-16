@@ -119,7 +119,7 @@ class TestSweep(unittest.TestCase):
         self.assertEqual('Exactly one of `template_paths` or `template_texts` '
                          'must be provided.', str(context.exception))
 
-    def test_param_array(self):
+    def test_param_mapping(self):
         param_array = run_sweep('cat {sim_id}.txt', ['{sim_id}.txt'],
                                 template_texts=['Hello {x} {y} {z}\n'],
                                 sweep_parameters={'x': [1, 2], 'y': [3, 4, 5],
@@ -130,12 +130,16 @@ class TestSweep(unittest.TestCase):
     def test_parameter_sets(self):
         out = open('out_test', 'w')
         out.close()
-        run_sweep('cat {sim_id}.txt >> out_test', ['{sim_id}.txt'],
-                  template_texts=['Hello {x}, {y}, {z}\n'],
-                  parameter_sets=[{'x': 2, 'y': 8, 'z': 5},
-                                  {'x': 1, 'y': -4, 'z': 9}], wait=True)
+        param_mapping = run_sweep('cat {sim_id}.txt >> out_test',
+                                  ['{sim_id}.txt'],
+                                  template_texts=['Hello {x}, {y}, {z}\n'],
+                                  parameter_sets=[{'x': 2, 'y': 8, 'z': 5},
+                                                  {'x': 1, 'y': -4, 'z': 9}],
+                                  wait=True)
         with open('out_test', 'r') as out:
             self.assertEqual(out.read(), 'Hello 2, 8, 5\nHello 1, -4, 9\n')
+        self.assertEqual(param_mapping, {'0': {'x': 2, 'y': 8, 'z': 5},
+                                         '1': {'x': 1, 'y': -4, 'z': 9}})
 
 
 class TestPythonTemplates(unittest.TestCase):

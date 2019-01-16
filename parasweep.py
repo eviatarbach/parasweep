@@ -21,7 +21,7 @@ def run_sweep(command, config_paths, sweep_id=None, template_paths=None,
               template_texts=None, sweep_parameters={}, parameter_sets=[],
               naming=SequentialNamer(), dispatcher=PythonSubprocessDispatcher,
               template_engine=PythonFormatTemplate, run=True, delay=0.0,
-              serial=False, wait=False, verbose=True, param_array=True):
+              serial=False, wait=False, verbose=True, param_mapping=True):
     r"""
     Run parameter sweeps.
 
@@ -81,11 +81,15 @@ def run_sweep(command, config_paths, sweep_id=None, template_paths=None,
     - verbose (bool, optional):
         Whether to print some information about each simulation as it is
         launched. True by default.
-    - param_array (bool, optional):
-        Whether to return an N-dimensional labelled array (using `xarray`)
-        which maps the parameters to the simulation IDs. The array coordinates
-        correspond to each sweep parameter, while the values contain the
-        simulation IDs. True by default.
+    - param_mapping (bool, optional):
+        Whether to return a mapping between the parameters to the simulation
+        IDs. If the sweep is a grid sweep, an N-dimensional labelled array
+        (using `xarray`) which maps the parameters to the simulation IDs will
+        be returned. The array coordinates correspond to each sweep parameter,
+        while the values contain the simulation IDs. If instead specific
+        parameter sets are provided (using the `parameter_sets` argument) then
+        a dictionary mapping the simulation IDs to the parameter sets will be
+        returned. True by default.
 
     EXAMPLES:
     >>> run_sweep('cat {sim_id}.txt', ['{sim_id}.txt'],
@@ -178,11 +182,9 @@ def run_sweep(command, config_paths, sweep_id=None, template_paths=None,
                 config_file.write(config_rendered.encode('utf-8', 'replace'))
         if run:
             if verbose:
-                print(f"Running simulation {sim_id} with "
-                      "parameters:")
-                print('\n'.join('{key}: {param}'.format(key=key,
-                                                        param=param)
-                                for key, param in sweep_params.items()))
+                print(f'Running simulation {sim_id} with parameters:')
+                print('\n'.join(f'{key}: {param}' for key, param
+                                in sweep_params.items()))
             session.dispatch(command.format(sim_id=sim_id), serial)
             if delay:
                 time.sleep(delay)
@@ -190,7 +192,7 @@ def run_sweep(command, config_paths, sweep_id=None, template_paths=None,
     if wait and run:
         session.wait_all()
 
-    if param_array and sweep_parameters:
+    if param_mapping and sweep_parameters:
         import xarray
         import numpy
 
@@ -204,3 +206,5 @@ def run_sweep(command, config_paths, sweep_id=None, template_paths=None,
         sim_ids_array.to_netcdf(sim_ids_filename)
 
         return sim_ids_array
+    elif param_mapping and parameter_sets:
+        return dict(zip(sim_ids, parameter_sets))

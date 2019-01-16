@@ -27,6 +27,7 @@ class _Template(ABC):
     def render(self, params):
         pass
 
+
 class PythonFormatTemplate(_Template):
 
     def _load(self):
