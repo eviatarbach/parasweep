@@ -178,8 +178,8 @@ def run_sweep(command, config_paths, sweep_id=None, template_paths=None,
                 config_file.write(config_rendered.encode('utf-8', 'replace'))
         if run:
             if verbose:
-                print("Running simulation {sim_id} with "
-                      "parameters:".format(sim_id=sim_id))
+                print(f"Running simulation {sim_id} with "
+                      "parameters:")
                 print('\n'.join('{key}: {param}'.format(key=key,
                                                         param=param)
                                 for key, param in sweep_params.items()))
@@ -199,7 +199,7 @@ def run_sweep(command, config_paths, sweep_id=None, template_paths=None,
                                          coords=values, dims=keys,
                                          name='sim_id')
 
-        sim_ids_filename = 'sim_ids_{sweep_id}.nc'.format(sweep_id=sweep_id)
+        sim_ids_filename = f'sim_ids_{sweep_id}.nc'
 
         sim_ids_array.to_netcdf(sim_ids_filename)
 
