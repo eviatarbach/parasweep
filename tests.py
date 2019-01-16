@@ -1,7 +1,10 @@
 """
-Tests will only work on UNIX-like systems.
+Test suite.
+
+Tests will only work on UNIX-like systems. Some tests rely on drmaa, Mako, or
+xarray being installed.
 """
-from simulation_runner import run_sweep
+from parasweep import run_sweep
 from namers import SequentialNamer
 from templates import PythonFormatTemplate
 

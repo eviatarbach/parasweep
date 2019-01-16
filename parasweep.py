@@ -4,11 +4,11 @@ Copyright Eviatar Bach (eviatarbach@protonmail.com) 2015–2018.
 Licensed under the MIT License. See license text at
 https://opensource.org/licenses/MIT.
 
-Part of simulation_runner, https://github.com/eviatarbach/simulation_runner.
+Part of parasweep, https://github.com/eviatarbach/parasweep.
 """
 from namers import SequentialNamer
-from dispatchers import PythonSubprocessDispatcher, DRMAADispatcher
-from templates import PythonFormatTemplate, MakoTemplate
+from dispatchers import PythonSubprocessDispatcher
+from templates import PythonFormatTemplate
 
 import itertools
 import time
@@ -196,7 +196,8 @@ def run_sweep(command, config_paths, sweep_id=None, template_paths=None,
 
         sim_ids_array = xarray.DataArray(numpy.reshape(numpy.array(sim_ids),
                                                        lengths),
-                                         coords=values, dims=keys)
+                                         coords=values, dims=keys,
+                                         name='sim_id')
 
         sim_ids_filename = 'sim_ids_{sweep_id}.nc'.format(sweep_id=sweep_id)
 
