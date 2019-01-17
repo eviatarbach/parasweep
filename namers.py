@@ -22,7 +22,8 @@ class SequentialNamer(_Namer):
     """
     Name simulations with consecutive numbers and leading zeros.
 
-    EXAMPLES:
+    Examples
+    --------
     >>> counter = SequentialNamer()
     >>> counter.start(length=11)
     >>> counter.next(['key1'], [['key_value1']])
