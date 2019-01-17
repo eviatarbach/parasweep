@@ -10,6 +10,7 @@ Advantages:
 - easy post-processing with a Python function
 
 Dependencies:
+- Python 3.6+
 - xarray (recommended, for parameter arrays)
 - numpy (recommended, for parameter arrays)
 - Mako (optional)
