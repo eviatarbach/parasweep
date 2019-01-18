@@ -19,7 +19,8 @@ from functools import reduce
 
 def run_sweep(command, config_paths, sweep_id=None, template_paths=None,
               template_texts=None, sweep_parameters={}, parameter_sets=[],
-              naming=SequentialNamer(), dispatcher=PythonSubprocessDispatcher,
+              naming=SequentialNamer(),
+              dispatcher=PythonSubprocessDispatcher(),
               template_engine=PythonFormatTemplate, run=True, delay=0.0,
               serial=False, wait=False, verbose=True, param_mapping=True):
     r"""
@@ -59,8 +60,8 @@ def run_sweep(command, config_paths, sweep_id=None, template_paths=None,
         A _Namer object that specifies how to assign simulation IDs. See
         namers.py for more information. By default, assigns simulation IDs
         sequentially.
-    dispatcher : dispatchers._Dispatcher class, optional
-        A _Dispatcher class that specifies how to run the jobs. See
+    dispatcher : dispatchers._Dispatcher instance, optional
+        A _Dispatcher object that specifies how to run the jobs. See
         dispatchers.py for more information. By default, uses Python's
         `subprocess` module.
     template_engine : templates._Template class, optional
@@ -167,7 +168,7 @@ def run_sweep(command, config_paths, sweep_id=None, template_paths=None,
     sim_ids = []
 
     if run:
-        session = dispatcher()
+        dispatcher.initialize_session()
 
     for param_set in product:
         if sweep_parameters:
@@ -189,12 +190,12 @@ def run_sweep(command, config_paths, sweep_id=None, template_paths=None,
                 print(f'Running simulation {sim_id} with parameters:')
                 print('\n'.join(f'{key}: {param}' for key, param
                                 in sweep_params.items()))
-            session.dispatch(command.format(sim_id=sim_id), serial)
+            dispatcher.dispatch(command.format(sim_id=sim_id), serial)
             if delay:
                 time.sleep(delay)
 
     if wait and run:
-        session.wait_all()
+        dispatcher.wait_all()
 
     if param_mapping and sweep_parameters:
         import xarray

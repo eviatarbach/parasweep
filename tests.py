@@ -60,7 +60,7 @@ class TestSweep(unittest.TestCase):
         run_sweep('cat {sim_id}.txt >> out_test', ['{sim_id}.txt'],
                   template_texts=['Hello {x}\n'],
                   sweep_parameters={'x': [1, 1, 1]}, wait=True,
-                  dispatcher=DRMAADispatcher)
+                  dispatcher=DRMAADispatcher())
         with open('out_test', 'r') as out:
             self.assertEqual(out.read(), 'Hello 1\nHello 1\nHello 1\n')
 
@@ -88,7 +88,7 @@ class TestSweep(unittest.TestCase):
         start_time = time.time()
         run_sweep('sleep 2', ['{sim_id}.txt'],
                   template_texts=['Hello {x}\n'],
-                  sweep_parameters={'x': [1, 2]}, dispatcher=DRMAADispatcher,
+                  sweep_parameters={'x': [1, 2]}, dispatcher=DRMAADispatcher(),
                   serial=True)
 
         self.assertGreater(time.time() - start_time, 4)
