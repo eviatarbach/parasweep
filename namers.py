@@ -1,3 +1,4 @@
+"""Namers for generating simulation IDs."""
 import math
 from abc import ABC, abstractmethod
 
@@ -10,11 +11,27 @@ class _Namer(ABC):
     """
 
     def start(self, length):
+        """
+        Initialize naming.
+
+        Parameters
+        ----------
+        length : int
+            Indicates how many total simulations are in the sweep.
+
+        """
         pass
 
     @abstractmethod
     def next(self, keys, param_set):
-        """Generate simulation ID for a given parameter set."""
+        """Generate simulation ID for a given parameter set.
+
+        Parameters
+        ----------
+        keys : iterable
+        param_set : iterable
+
+        """
         pass
 
 
@@ -34,11 +51,22 @@ class SequentialNamer(_Namer):
     """
 
     def __init__(self, zfill=None, start_at=0):
+        """
+        Initialize sequential naming object.
+
+        Parameters
+        ----------
+        zfill : None or int, optional
+            If provided, sets the width to which the name string is to be
+            padded with zeros.
+        start_at : int, optional
+            Sets the integer to start at in the sequential naming.
+
+        """
         self.zfill = zfill
         self.start_at = start_at
 
     def start(self, length):
-        """Initialize counter."""
         self.count = self.start_at - 1
         if self.zfill is None:
             # Compute how many digits are needed to represent all the numbers
@@ -46,7 +74,6 @@ class SequentialNamer(_Namer):
         self.length = length
 
     def next(self, keys, param_set):
-        """Return next simulation ID."""
         if self.count + 1 >= self.length + self.start_at:
             raise StopIteration
         self.count += 1

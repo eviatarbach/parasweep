@@ -49,12 +49,12 @@ def run_sweep(command, config_paths, sweep_id=None, template_paths=None,
             Using this option will do a grid sweep (Cartesian product).
             Dictionary where the keys are the parameter names and the values
             are lists of parameter values to sweep over. E.g.,
-            {'x': [1, 2], 'y': [3, 4]}. Or,
+            `{'x': [1, 2], 'y': [3, 4]}`. Or,
         **parameter_sets** (*list*):
             Using this option will run a sweep with the provided parameter
             sets. List of dictionaries where the keys are the parameter names
             and the values are the fixed parameter values. E.g.,
-            [{'x': 1, 'y': 2}, {'x': 3, 'y': 4}]
+            `[{'x': 1, 'y': 2}, {'x': 3, 'y': 4}]`
     naming : namers._Namer instance, optional
         A _Namer object that specifies how to assign simulation IDs. See
         namers.py for more information. By default, assigns simulation IDs
@@ -110,8 +110,8 @@ def run_sweep(command, config_paths, sweep_id=None, template_paths=None,
     Hello 0.67
     Hello 1.00
 
-    >>> run_sweep('cat {sim_id}_1.txt {sim_id}_2.txt',
-    ...           ['{sim_id}_1.txt', '{sim_id}_2.txt'],
+    >>> run_sweep(command='cat {sim_id}_1.txt {sim_id}_2.txt',
+    ...           config_paths=['{sim_id}_1.txt', '{sim_id}_2.txt'],
     ...           template_texts=['Hello {x:.2f}\n',
     ...                           'Hello again {y}\n'],
     ...           sweep_parameters={'x': [1/3, 2/3, 3/3], 'y': [4]},

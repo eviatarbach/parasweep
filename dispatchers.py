@@ -30,7 +30,7 @@ class PythonSubprocessDispatcher(_Dispatcher):
 class DRMAADispatcher(_Dispatcher):
     session = None
 
-    def __init__(self):
+    def __init__(self, job_template=None):
         # Ensure there is only one active DRMAA session, otherwise it raises
         # an error
         if DRMAADispatcher.session is None:
@@ -42,13 +42,17 @@ class DRMAADispatcher(_Dispatcher):
         else:
             self.session = DRMAADispatcher.session
 
+        if job_template is None:
+            self.job_template = self.session.createJobTemplate()
+        else:
+            self.job_template = job_template
+
         self.jobids = []
 
     def dispatch(self, command, wait):
-        jt = self.session.createJobTemplate()
-        jt.remoteCommand = command
+        self.job_template.remoteCommand = command
 
-        jobid = self.session.runJob(jt)
+        jobid = self.session.runJob(self.job_template)
         self.jobids.append(jobid)
         if wait:
             self.session.wait(jobid)

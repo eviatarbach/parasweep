@@ -1,3 +1,4 @@
+"""Template engines for generating configuration files."""
 from abc import ABC, abstractmethod
 from string import Formatter
 
@@ -29,6 +30,7 @@ class _Template(ABC):
 
 
 class PythonFormatTemplate(_Template):
+    """Template engine using Python's string formatting."""
 
     def _load(self):
         if self.paths:
@@ -40,6 +42,7 @@ class PythonFormatTemplate(_Template):
             self.templates = self.texts
 
     def render(self, params):
+        """Render a template using the Python string formatting engine."""
         keys = params.keys()
         unused_names = set(keys)
         rendered = []
@@ -82,6 +85,7 @@ def _mako_template_names(template):
 
 
 class MakoTemplate(_Template):
+    """Template engine using Mako."""
 
     def _load(self):
         from mako.template import Template
@@ -100,6 +104,7 @@ class MakoTemplate(_Template):
                                                strict_undefined=True))
 
     def render(self, params):
+        """Render a template using the Mako engine."""
         keys = params.keys()
         unused_names = set(keys)
         rendered = []
