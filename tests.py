@@ -10,6 +10,7 @@ from templates import PythonFormatTemplate
 
 import unittest
 
+
 class TestSweep(unittest.TestCase):
     def test_basic(self):
         out = open('out_test', 'w')

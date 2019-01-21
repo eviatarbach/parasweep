@@ -3,7 +3,15 @@ import subprocess
 from abc import ABC, abstractmethod
 
 
-class _Dispatcher(ABC):
+class Dispatcher(ABC):
+    """
+    Abstract base class for dispatchers.
+
+    Subclasses should implement the `initialize_session`, `dispatch`, and
+    `wait_all` methods.
+
+    """
+
     @abstractmethod
     def initialize_session(self):
         """Must be called before dispatching jobs."""
@@ -30,7 +38,7 @@ class _Dispatcher(ABC):
         pass
 
 
-class PythonSubprocessDispatcher(_Dispatcher):
+class PythonSubprocessDispatcher(Dispatcher):
     def initialize_session(self):
         self.processes = []
 
@@ -45,7 +53,28 @@ class PythonSubprocessDispatcher(_Dispatcher):
             process.wait()
 
 
-class DRMAADispatcher(_Dispatcher):
+class DRMAADispatcher(Dispatcher):
+    """
+    Dispatcher for DRMAA.
+
+    Parameters
+    ----------
+    job_template : drmaa.JobTemplate instance, optional
+        A job template containing settings for running the jobs with
+        the job scheduler. Documentation for the different options is
+        available in the Python drmaa package. Some options specific to each
+        job scheduler, called the native specification, may have to be set
+        using the `job_template.nativeSpecification` attribute, the options for
+        which can be found in the job scheduler's DRMAA interface (e.g.,
+        slurm-drmaa for Slurm and pbs-drmaa for PBS).
+
+    Examples
+    --------
+    >>> import drmaa
+    >>> jt = drmaa.JobTemplate(hardWallclockTimeLimit=60)
+    >>> dispatcher = DRMAADispatcher(jt)
+
+    """
     session = None
 
     def __init__(self, job_template=None):

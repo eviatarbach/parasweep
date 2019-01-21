@@ -3,7 +3,7 @@ import math
 from abc import ABC, abstractmethod
 
 
-class _Namer(ABC):
+class Namer(ABC):
     """
     Abstract class for assigning simulation IDs to simulation.
 
@@ -35,7 +35,7 @@ class _Namer(ABC):
         pass
 
 
-class SequentialNamer(_Namer):
+class SequentialNamer(Namer):
     """
     Name simulations with consecutive numbers and leading zeros.
 

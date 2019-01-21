@@ -56,18 +56,15 @@ def run_sweep(command, config_paths, sweep_id=None, template_paths=None,
             sets. List of dictionaries where the keys are the parameter names
             and the values are the fixed parameter values. E.g.,
             `[{'x': 1, 'y': 2}, {'x': 3, 'y': 4}]`
-    naming : namers._Namer instance, optional
-        A _Namer object that specifies how to assign simulation IDs. See
-        namers.py for more information. By default, assigns simulation IDs
-        sequentially.
-    dispatcher : dispatchers._Dispatcher instance, optional
-        A _Dispatcher object that specifies how to run the jobs. See
-        dispatchers.py for more information. By default, uses Python's
-        `subprocess` module.
-    template_engine : templates._Template class, optional
-        A _Template class that specifies the template engine to use. See
-        `templates.py` for more information. By default, uses Python format
-        strings.
+    naming : namers.Namer instance, optional
+        A :class:`namers.Namer` object that specifies how to assign simulation
+        IDs. By default, assigns simulation IDs sequentially.
+    dispatcher : dispatchers.Dispatcher instance, optional
+        A :class:`dispatchers.Dispatcher` object that specifies how to run the
+        jobs. By default, uses Python's `subprocess` module.
+    template_engine : templates.Template class, optional
+        A :class:`templates.Template` class that specifies the template engine
+        to use. By default, uses Python format strings.
     run : bool, optional
         Whether to run the parameter sweep. True by default.
     delay : float, optional
@@ -95,34 +92,82 @@ def run_sweep(command, config_paths, sweep_id=None, template_paths=None,
 
     Examples
     --------
-    >>> run_sweep('cat {sim_id}.txt', ['{sim_id}.txt'],
-    ...           template_texts=['Hello ${x*10}\n'],
-    ...           sweep_parameters={'x': [1, 2, 3]}, verbose=False,
-    ...           template_engine=MakoTemplate)
-    Hello 10
-    Hello 20
-    Hello 30
+    An example of the basic formatting that can be done with the Python
+    formatting templates:
 
     >>> run_sweep('cat {sim_id}.txt', ['{sim_id}.txt'],
     ...           template_texts=['Hello {x:.2f}\n'],
     ...           sweep_parameters={'x': [1/3, 2/3, 3/3]},
-    ...           verbose=False)
+    ...           verbose=False, param_mapping=False)
     Hello 0.33
     Hello 0.67
     Hello 1.00
+
+    Mako templates provide functionality that is not available with Python
+    formatting templates, being able to insert code within the template:
+
+    >>> from templates import MakoTemplate
+    >>> run_sweep('cat {sim_id}.txt', ['{sim_id}.txt'],
+    ...           template_texts=['Hello ${x*10}\n'],
+    ...           sweep_parameters={'x': [1, 2, 3]}, verbose=False,
+    ...           template_engine=MakoTemplate, param_mapping=False)
+    Hello 10
+    Hello 20
+    Hello 30
+
+    Multiple configuration files and their corresponding templates can be used:
 
     >>> run_sweep(command='cat {sim_id}_1.txt {sim_id}_2.txt',
     ...           config_paths=['{sim_id}_1.txt', '{sim_id}_2.txt'],
     ...           template_texts=['Hello {x:.2f}\n',
     ...                           'Hello again {y}\n'],
     ...           sweep_parameters={'x': [1/3, 2/3, 3/3], 'y': [4]},
-    ...           verbose=False)
+    ...           verbose=False, param_mapping=False)
     Hello 0.33
     Hello again 4
     Hello 0.67
     Hello again 4
     Hello 1.00
     Hello again 4
+
+    By default (if `param_mapping` is True), a mapping will be returned between
+    the parameters and the simulation IDs, which facilitates postprocessing::
+
+        >>> run_sweep('cat {sim_id}.txt >> out', ['{sim_id}.txt'],
+        ...           template_texts=['Hello {x} {y} {z}\n'],
+        ...           sweep_parameters={'x': [1, 2], 'y': [3, 4, 5],
+        ...                             'z': [6, 7, 8, 9]})
+        <xarray.DataArray 'sim_id' (x: 2, y: 3, z: 4)>
+        array([[['0', '1', '2', '3'],
+                ['4', '5', '6', '7'],
+                ['8', '9', '10', '11']],
+
+               [['12', '13', '14', '15'],
+                ['16', '17', '18', '19'],
+                ['20', '21', '22', '23']]], dtype='<U2')
+        Coordinates:
+          * x        (x) int64 1 2
+          * y        (y) int64 3 4 5
+          * z        (z) int64 6 7 8 9
+
+
+    The default sweep is a Cartesian sweep, meaning that all the combinations
+    of all the parameters are used (every member in the Cartesian product of
+    the parameter values). Alternatively, specific parameter sets can be used:
+
+    >>> mapping = run_sweep('cat {sim_id}.txt', ['{sim_id}.txt'],
+    ...                     template_texts=['Hello {x}, {y}, {z}\n'],
+    ...                     parameter_sets=[{'x': 2, 'y': 8, 'z': 5},
+    ...                                     {'x': 1, 'y': -4, 'z': 9}],
+    ...                     verbose=False)
+    Hello 2, 8, 5
+    Hello 1, -4, 9
+
+    In the case that parameter sets are used, the parameter mapping is a
+    dictionary like the following:
+
+    >>> mapping
+    {'0': {'x': 2, 'y': 8, 'z': 5}, '1': {'x': 1, 'y': -4, 'z': 9}}
 
     """
     if (((template_paths is None) and (template_texts is None))

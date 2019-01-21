@@ -3,12 +3,14 @@ from abc import ABC, abstractmethod
 from string import Formatter
 
 
-class _Template(ABC):
+class Template(ABC):
     """
     Abstract base class for template engines.
 
-    Make sure to implement errors for providing parameters not present in the
-    template, and for using parameters in the template that are not provided.
+    Subclasses should implement the `_load` and `render` methods. Make sure to
+    implement errors for providing parameters not present in the template, and
+    for using parameters in the template that are not provided.
+
     """
 
     def __init__(self, texts=None, paths=None):
@@ -26,10 +28,19 @@ class _Template(ABC):
 
     @abstractmethod
     def render(self, params):
+        """
+        Render a configuration file with the template engine.
+
+        Parameters
+        ----------
+        params : dict
+            Dictionary with parameters and their values.
+
+        """
         pass
 
 
-class PythonFormatTemplate(_Template):
+class PythonFormatTemplate(Template):
     """Template engine using Python's string formatting."""
 
     def _load(self):
@@ -42,7 +53,6 @@ class PythonFormatTemplate(_Template):
             self.templates = self.texts
 
     def render(self, params):
-        """Render a template using the Python string formatting engine."""
         keys = params.keys()
         unused_names = set(keys)
         rendered = []
@@ -84,7 +94,7 @@ def _mako_template_names(template):
     return identifiers.undeclared
 
 
-class MakoTemplate(_Template):
+class MakoTemplate(Template):
     """Template engine using Mako."""
 
     def _load(self):
@@ -104,7 +114,6 @@ class MakoTemplate(_Template):
                                                strict_undefined=True))
 
     def render(self, params):
-        """Render a template using the Mako engine."""
         keys = params.keys()
         unused_names = set(keys)
         rendered = []
