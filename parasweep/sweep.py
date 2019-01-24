@@ -14,8 +14,8 @@ from functools import reduce
 import os.path
 
 
-def run_sweep(command, config_paths, sweep_id=None, template_paths=None,
-              template_texts=None, sweep_parameters={}, parameter_sets=[],
+def run_sweep(command, config_paths, template_paths=None, template_texts=None,
+              sweep_parameters={}, parameter_sets=[], sweep_id=None,
               naming=SequentialNamer(),
               dispatcher=PythonSubprocessDispatcher(),
               template_engine=PythonFormatTemplate, run=True, delay=0.0,
@@ -54,6 +54,9 @@ def run_sweep(command, config_paths, sweep_id=None, template_paths=None,
             sets. List of dictionaries where the keys are the parameter names
             and the values are the fixed parameter values. E.g.,
             `[{'x': 1, 'y': 2}, {'x': 3, 'y': 4}]`
+    sweep_id : str, optional
+        A name for the sweep. By default, the name is generated automatically
+        from the date and time.
     naming : namers.Namer instance, optional
         A :class:`parasweep.namers.Namer` object that specifies how to assign
         simulation IDs. By default, assigns simulation IDs sequentially.

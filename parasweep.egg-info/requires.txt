@@ -1,0 +1,8 @@
+xarray
+numpy
+
+[DRMAA support]
+drmaa
+
+[Mako templates]
+mako

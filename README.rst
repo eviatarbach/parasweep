@@ -6,9 +6,6 @@ parasweep
 .. image:: https://img.shields.io/pypi/v/parasweep.svg
         :target: https://pypi.python.org/pypi/parasweep
 
-.. image:: https://img.shields.io/travis/eviatarbach/parasweep.svg
-        :target: https://travis-ci.org/eviatarbach/parasweep
-
 .. image:: https://readthedocs.org/projects/parasweep/badge/?version=latest
         :target: https://parasweep.readthedocs.io/en/latest/?badge=latest
         :alt: Documentation Status
