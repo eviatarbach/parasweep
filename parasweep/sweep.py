@@ -10,8 +10,8 @@ import itertools
 import time
 import operator
 import datetime
+import os
 from functools import reduce
-import os.path
 
 
 def run_sweep(command, config_paths, template_paths=None, template_texts=None,
@@ -19,8 +19,8 @@ def run_sweep(command, config_paths, template_paths=None, template_texts=None,
               naming=SequentialNamer(),
               dispatcher=PythonSubprocessDispatcher(),
               template_engine=PythonFormatTemplate, run=True, delay=0.0,
-              serial=False, wait=False, verbose=True, overwrite=True,
-              param_mapping=True):
+              serial=False, wait=False, cleanup=False, verbose=True,
+              overwrite=True, mapping=True):
     r"""
     Run parameter sweeps.
 
@@ -78,6 +78,10 @@ def run_sweep(command, config_paths, template_paths=None, template_texts=None,
     wait : bool, optional
         Whether to wait for all simulations to complete before returning.
         False by default.
+    cleanup : bool, optional
+        Whether to delete configuration files after all the simulations are
+        done. This will cause the command to wait on all processes before
+        returning (as with the `wait` argument). False by default.
     verbose : bool, optional
         Whether to print some information about each simulation as it is
         launched. True by default.
@@ -86,15 +90,16 @@ def run_sweep(command, config_paths, template_paths=None, template_texts=None,
         If False, a `FileExistsError` will be raised when a configuration
         filename coincides with an existing one in the same directory. True by
         default.
-    param_mapping : bool, optional
+    mapping : bool, optional
         Whether to return a mapping between the parameters to the simulation
         IDs. If the sweep is a grid sweep, an N-dimensional labelled array
         (using `xarray`) which maps the parameters to the simulation IDs will
         be returned. The array coordinates correspond to each sweep parameter,
-        while the values contain the simulation IDs. If instead specific
-        parameter sets are provided (using the `parameter_sets` argument) then
-        a dictionary mapping the simulation IDs to the parameter sets will be
-        returned. True by default.
+        while the values contain the simulation IDs. This array will also be
+        saved as a netCDF file with the name 'sim_ids_{sweep_id}.nc'. If
+        instead specific parameter sets are provided (using the
+        `parameter_sets` argument) then a dictionary mapping the simulation IDs
+        to the parameter sets will be returned. True by default.
 
     Examples
     --------
@@ -104,7 +109,7 @@ def run_sweep(command, config_paths, template_paths=None, template_texts=None,
     >>> run_sweep('cat {sim_id}.txt', ['{sim_id}.txt'],
     ...           template_texts=['Hello {x:.2f}\n'],
     ...           sweep_parameters={'x': [1/3, 2/3, 3/3]},
-    ...           verbose=False, param_mapping=False)
+    ...           verbose=False, mapping=False)
     Hello 0.33
     Hello 0.67
     Hello 1.00
@@ -116,7 +121,7 @@ def run_sweep(command, config_paths, template_paths=None, template_texts=None,
     >>> run_sweep('cat {sim_id}.txt', ['{sim_id}.txt'],
     ...           template_texts=['Hello ${x*10}\n'],
     ...           sweep_parameters={'x': [1, 2, 3]}, verbose=False,
-    ...           template_engine=MakoTemplate, param_mapping=False)
+    ...           template_engine=MakoTemplate, mapping=False)
     Hello 10
     Hello 20
     Hello 30
@@ -128,7 +133,7 @@ def run_sweep(command, config_paths, template_paths=None, template_texts=None,
     ...           template_texts=['Hello {x:.2f}\n',
     ...                           'Hello again {y}\n'],
     ...           sweep_parameters={'x': [1/3, 2/3, 3/3], 'y': [4]},
-    ...           verbose=False, param_mapping=False)
+    ...           verbose=False, mapping=False)
     Hello 0.33
     Hello again 4
     Hello 0.67
@@ -136,7 +141,7 @@ def run_sweep(command, config_paths, template_paths=None, template_texts=None,
     Hello 1.00
     Hello again 4
 
-    By default (if `param_mapping` is True), a mapping will be returned between
+    By default (if `mapping` is True), a mapping will be returned between
     the parameters and the simulation IDs, which facilitates postprocessing::
 
         >>> run_sweep('cat {sim_id}.txt >> out', ['{sim_id}.txt'],
@@ -217,6 +222,7 @@ def run_sweep(command, config_paths, template_paths=None, template_texts=None,
     naming.start(length=sweep_length)
 
     sim_ids = []
+    config_filenames = []
 
     if run:
         dispatcher.initialize_session()
@@ -235,6 +241,7 @@ def run_sweep(command, config_paths, template_paths=None, template_texts=None,
         rendered = config.render(sweep_params)
         for config_rendered, config_path in zip(rendered, config_paths):
             config_filename = config_path.format(sim_id=sim_id)
+            config_filenames.append(config_filename)
             if not overwrite:
                 if os.path.isfile(config_filename):
                     raise FileExistsError(f'{config_filename} exists, set '
@@ -253,7 +260,12 @@ def run_sweep(command, config_paths, template_paths=None, template_texts=None,
     if wait and run:
         dispatcher.wait_all()
 
-    if param_mapping and sweep_parameters:
+    if cleanup and run:
+        dispatcher.wait_all()
+        for config_filename in config_filenames:
+            os.remove(config_filename)
+
+    if mapping and sweep_parameters:
         import xarray
         import numpy
 
@@ -267,5 +279,5 @@ def run_sweep(command, config_paths, template_paths=None, template_texts=None,
         sim_ids_array.to_netcdf(sim_ids_filename)
 
         return sim_ids_array
-    elif param_mapping and parameter_sets:
+    elif mapping and parameter_sets:
         return dict(zip(sim_ids, parameter_sets))
