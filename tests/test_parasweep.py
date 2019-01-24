@@ -19,7 +19,8 @@ class TestSweep(unittest.TestCase):
                   template_texts=['Hello {x:.2f}\n'],
                   sweep_parameters={'x': [1/3, 2/3, 3/3]})
         with open('out_test', 'r') as out:
-            self.assertEqual(out.read(), 'Hello 0.33\nHello 0.67\nHello 1.00\n')
+            self.assertEqual(out.read(),
+                             'Hello 0.33\nHello 0.67\nHello 1.00\n')
 
     def test_single(self):
         out = open('out_test', 'w')
@@ -39,7 +40,8 @@ class TestSweep(unittest.TestCase):
                   sweep_parameters={'x': [1/3, 2/3, 3/3], 'y': [4]})
         with open('out_test', 'r') as out:
             self.assertEqual(out.read(),
-                             'Hello 0.33\nHello again 4\nHello 0.67\nHello again 4\nHello 1.00\nHello again 4\n')
+                             'Hello 0.33\nHello again 4\nHello 0.67\n'
+                             'Hello again 4\nHello 1.00\nHello again 4\n')
 
     def test_mako(self):
         from parasweep.templates import MakoTemplate
@@ -150,7 +152,8 @@ class TestPythonTemplates(unittest.TestCase):
                       template_texts=['Hello {x} {z}\n'],
                       sweep_parameters={'x': [1, 2, 3]})
 
-        self.assertEqual("The name 'z' is used in the template but not provided.",
+        self.assertEqual("The name 'z' is used in the template but not "
+                         "provided.",
                          str(context.exception))
 
         with self.assertRaises(NameError) as context:

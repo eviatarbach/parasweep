@@ -1,11 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Copyright Eviatar Bach (eviatarbach@protonmail.com) 2015–2018.
-
-Licensed under the MIT License. See license text at
-https://opensource.org/licenses/MIT.
-
-Part of parasweep, https://github.com/eviatarbach/parasweep.
+Main sweep functionality.
 """
 from parasweep.namers import SequentialNamer
 from parasweep.dispatchers import PythonSubprocessDispatcher
@@ -16,6 +11,7 @@ import time
 import operator
 import datetime
 from functools import reduce
+import os.path
 
 
 def run_sweep(command, config_paths, sweep_id=None, template_paths=None,
@@ -23,7 +19,8 @@ def run_sweep(command, config_paths, sweep_id=None, template_paths=None,
               naming=SequentialNamer(),
               dispatcher=PythonSubprocessDispatcher(),
               template_engine=PythonFormatTemplate, run=True, delay=0.0,
-              serial=False, wait=False, verbose=True, param_mapping=True):
+              serial=False, wait=False, verbose=True, overwrite=True,
+              param_mapping=True):
     r"""
     Run parameter sweeps.
 
@@ -58,14 +55,14 @@ def run_sweep(command, config_paths, sweep_id=None, template_paths=None,
             and the values are the fixed parameter values. E.g.,
             `[{'x': 1, 'y': 2}, {'x': 3, 'y': 4}]`
     naming : namers.Namer instance, optional
-        A :class:`namers.Namer` object that specifies how to assign simulation
-        IDs. By default, assigns simulation IDs sequentially.
+        A :class:`parasweep.namers.Namer` object that specifies how to assign
+        simulation IDs. By default, assigns simulation IDs sequentially.
     dispatcher : dispatchers.Dispatcher instance, optional
-        A :class:`dispatchers.Dispatcher` object that specifies how to run the
-        jobs. By default, uses Python's `subprocess` module.
+        A :class:`parasweep.dispatchers.Dispatcher` object that specifies how
+        to run the jobs. By default, uses Python's `subprocess` module.
     template_engine : templates.Template class, optional
-        A :class:`templates.Template` class that specifies the template engine
-        to use. By default, uses Python format strings.
+        A :class:`parasweep.templates.Template` class that specifies the
+        template engine to use. By default, uses Python format strings.
     run : bool, optional
         Whether to run the parameter sweep. True by default.
     delay : float, optional
@@ -81,6 +78,11 @@ def run_sweep(command, config_paths, sweep_id=None, template_paths=None,
     verbose : bool, optional
         Whether to print some information about each simulation as it is
         launched. True by default.
+    overwrite : bool, optional
+        Whether to overwrite existing files when creating configuration files.
+        If False, a `FileExistsError` will be raised when a configuration
+        filename coincides with an existing one in the same directory. True by
+        default.
     param_mapping : bool, optional
         Whether to return a mapping between the parameters to the simulation
         IDs. If the sweep is a grid sweep, an N-dimensional labelled array
@@ -229,7 +231,12 @@ def run_sweep(command, config_paths, sweep_id=None, template_paths=None,
 
         rendered = config.render(sweep_params)
         for config_rendered, config_path in zip(rendered, config_paths):
-            with open(config_path.format(sim_id=sim_id), 'wb') as config_file:
+            config_filename = config_path.format(sim_id=sim_id)
+            if not overwrite:
+                if os.path.isfile(config_filename):
+                    raise FileExistsError(f'{config_filename} exists, set '
+                                          '`overwrite` to True to overwrite.')
+            with open(config_filename, 'wb') as config_file:
                 config_file.write(config_rendered.encode('utf-8', 'replace'))
         if run:
             if verbose:

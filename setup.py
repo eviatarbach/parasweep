@@ -3,7 +3,6 @@
 
 """The setup script."""
 
-import unittest
 from setuptools import setup, find_packages
 
 with open('README.rst') as readme_file:
@@ -14,15 +13,15 @@ with open('HISTORY.rst') as history_file:
 
 requirements = ['xarray', 'numpy']
 
-setup_requirements = [ ]
+setup_requirements = []
 
-test_requirements = [ ]
+test_requirements = []
 
 setup(
     author="Eviatar Bach",
     author_email='eviatarbach@protonmail.com',
     classifiers=[
-        'Intended Audience :: Developers',
+        'Intended Audience :: Science/Research',
         'License :: OSI Approved :: MIT License',
         'Natural Language :: English',
         'Programming Language :: Python :: 3.6',
@@ -39,6 +38,7 @@ setup(
     setup_requires=setup_requirements,
     test_suite='tests',
     tests_require=test_requirements,
+    extras_require={'DRMAA support': ['drmaa'], 'Mako templates': ['mako']},
     url='https://github.com/eviatarbach/parasweep',
     version='2019.01',
     zip_safe=False,

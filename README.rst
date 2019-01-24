@@ -26,7 +26,15 @@ Utility for facilitating parallel parameter sweeps.
 Features
 --------
 
-* TODO
+* Parameter sweep types:
+  * Sweeps using all possible combinations of the given parameter values (Cartesian product)
+  * Sweeps using specific parameter sets
+* Dispatch types:
+  * Python's `subprocess` (default)
+  * DRMAA to interface with HPC job schedulers
+* Template types:
+  * Python format strings (default)
+  * Mako templates for more powerful formatting
 
 Credits
 -------
