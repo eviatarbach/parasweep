@@ -35,12 +35,12 @@ To use parasweep::
 
     from parasweep import run_sweep
 
-See the documentation for :func:`parasweep.sweep.run_sweep` for full usage details.
+See the documentation for `run_sweep` for full usage details.
 
 Dependencies
 ------------
 
-* Python 3.6+
+* Python 3
 * xarray
 * numpy
 * Mako (optional)

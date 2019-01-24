@@ -63,11 +63,11 @@ class PythonFormatTemplate(Template):
             try:
                 rendered.append(template.format(**params))
             except KeyError as key:
-                raise NameError(f'The name {key} is used in the template but '
-                                'not provided.')
+                raise NameError('The name {} is used in the template but not '
+                                'provided.'.format(key))
         if unused_names:
-            raise NameError(f'The names {unused_names} are not used in the '
-                            'template.')
+            raise NameError('The names {} are not used in the '
+                            'template.'.format(unused_names))
         return rendered
 
 
@@ -122,6 +122,6 @@ class MakoTemplate(Template):
             unused_names -= config_names
             rendered.append(template.render_unicode(**params))
         if unused_names:
-            raise NameError(f'The names {unused_names} are not used in the '
-                            'template.')
+            raise NameError('The names {} are not used in the '
+                            'template.'.format(unused_names))
         return rendered

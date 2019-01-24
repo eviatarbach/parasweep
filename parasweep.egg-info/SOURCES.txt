@@ -1,4 +1,3 @@
-AUTHORS.rst
 CONTRIBUTING.rst
 HISTORY.rst
 LICENSE
@@ -7,7 +6,6 @@ README.rst
 setup.cfg
 setup.py
 docs/Makefile
-docs/authors.rst
 docs/conf.py
 docs/contributing.rst
 docs/history.rst
@@ -21,7 +19,6 @@ docs/parasweep.rst
 docs/parasweep.sweep.rst
 docs/parasweep.templates.rst
 docs/readme.rst
-docs/usage.rst
 docs/_build/html/_static/ajax-loader.gif
 docs/_build/html/_static/comment-bright.png
 docs/_build/html/_static/comment-close.png

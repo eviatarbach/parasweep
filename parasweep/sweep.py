@@ -245,14 +245,15 @@ def run_sweep(command, config_paths, template_paths=None, template_texts=None,
             config_filenames.append(config_filename)
             if not overwrite:
                 if os.path.isfile(config_filename):
-                    raise FileExistsError(f'{config_filename} exists, set '
-                                          '`overwrite` to True to overwrite.')
+                    raise FileExistsError('{} exists, set `overwrite` '
+                                          'to True to '
+                                          'overwrite.'.format(config_filename))
             with open(config_filename, 'wb') as config_file:
                 config_file.write(config_rendered.encode('utf-8', 'replace'))
         if run:
             if verbose:
-                print(f'Running simulation {sim_id} with parameters:')
-                print('\n'.join(f'{key}: {param}' for key, param
+                print('Running simulation {} with parameters:'.format(sim_id))
+                print('\n'.join('{}: {}'.format(key, param) for key, param
                                 in sweep_params.items()))
             dispatcher.dispatch(command.format(sim_id=sim_id), serial)
             if delay:
@@ -275,7 +276,7 @@ def run_sweep(command, config_paths, template_paths=None, template_texts=None,
                                          coords=values, dims=keys,
                                          name='sim_id')
 
-        sim_ids_filename = f'sim_ids_{sweep_id}.nc'
+        sim_ids_filename = 'sim_ids_{}.nc'.format(sweep_id)
 
         sim_ids_array.to_netcdf(sim_ids_filename)
 
