@@ -106,6 +106,7 @@ def run_sweep(command, config_paths, template_paths=None, template_texts=None,
     An example of the basic formatting that can be done with the Python
     formatting templates:
 
+    >>> from parasweep import run_sweep
     >>> run_sweep('cat {sim_id}.txt', ['{sim_id}.txt'],
     ...           template_texts=['Hello {x:.2f}\n'],
     ...           sweep_parameters={'x': [1/3, 2/3, 3/3]},
@@ -117,7 +118,7 @@ def run_sweep(command, config_paths, template_paths=None, template_texts=None,
     Mako templates provide functionality that is not available with Python
     formatting templates, being able to insert code within the template:
 
-    >>> from templates import MakoTemplate
+    >>> from parasweep.templates import MakoTemplate
     >>> run_sweep('cat {sim_id}.txt', ['{sim_id}.txt'],
     ...           template_texts=['Hello ${x*10}\n'],
     ...           sweep_parameters={'x': [1, 2, 3]}, verbose=False,
