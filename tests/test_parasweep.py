@@ -5,8 +5,8 @@ Tests will only work on UNIX-like systems. Some tests rely on drmaa, Mako, or
 xarray being installed.
 """
 from parasweep import run_sweep
-from namers import SequentialNamer
-from templates import PythonFormatTemplate
+from parasweep.namers import SequentialNamer
+from parasweep.templates import PythonFormatTemplate
 
 import unittest
 
@@ -42,7 +42,7 @@ class TestSweep(unittest.TestCase):
                              'Hello 0.33\nHello again 4\nHello 0.67\nHello again 4\nHello 1.00\nHello again 4\n')
 
     def test_mako(self):
-        from templates import MakoTemplate
+        from parasweep.templates import MakoTemplate
         out = open('out_test', 'w')
         out.close()
         run_sweep('cat {sim_id}.txt >> out_test', ['{sim_id}.txt'],
@@ -54,7 +54,7 @@ class TestSweep(unittest.TestCase):
                              'Hello 10\nHello 20\nHello 30\n')
 
     def test_drmaa(self):
-        from dispatchers import DRMAADispatcher
+        from parasweep.dispatchers import DRMAADispatcher
 
         out = open('out_test', 'w')
         out.close()
@@ -77,7 +77,7 @@ class TestSweep(unittest.TestCase):
 
     def test_serial(self):
         import time
-        from dispatchers import DRMAADispatcher
+        from parasweep.dispatchers import DRMAADispatcher
 
         start_time = time.time()
         run_sweep('sleep 2', ['{sim_id}.txt'],
@@ -184,7 +184,7 @@ class TestPythonTemplates(unittest.TestCase):
 
 class TestMakoTemplates(unittest.TestCase):
     def test_errors(self):
-        from templates import MakoTemplate
+        from parasweep.templates import MakoTemplate
 
         with self.assertRaises(NameError) as context:
             run_sweep('cat {sim_id}.txt', ['{sim_id}.txt'],
@@ -204,7 +204,7 @@ class TestMakoTemplates(unittest.TestCase):
                          str(context.exception))
 
     def test_paths(self):
-        from templates import MakoTemplate
+        from parasweep.templates import MakoTemplate
 
         out = open('out_test', 'w')
         out.close()

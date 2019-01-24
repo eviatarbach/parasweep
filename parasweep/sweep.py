@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Copyright Eviatar Bach (eviatarbach@protonmail.com) 2015–2018.
 
@@ -6,9 +7,9 @@ https://opensource.org/licenses/MIT.
 
 Part of parasweep, https://github.com/eviatarbach/parasweep.
 """
-from namers import SequentialNamer
-from dispatchers import PythonSubprocessDispatcher
-from templates import PythonFormatTemplate
+from parasweep.namers import SequentialNamer
+from parasweep.dispatchers import PythonSubprocessDispatcher
+from parasweep.templates import PythonFormatTemplate
 
 import itertools
 import time
