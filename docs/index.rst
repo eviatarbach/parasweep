@@ -10,8 +10,10 @@ Welcome to parasweep's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-   readme
+   Basic information <readme>
    installation
+   Sweep reference <parasweep.sweep>
+   Module reference <parasweep>
    contributing
    history
 
