@@ -70,7 +70,8 @@ class SequentialNamer(Namer):
         self.count = self.start_at - 1
         if self.zfill is None:
             # Compute how many digits are needed to represent all the numbers
-            self.zfill = math.floor(math.log10(length - 1) + 1)
+            self.zfill = (math.floor(math.log10(length - 1) + 1) if length != 1
+                          else 1)
         self.length = length
 
     def next(self, keys, param_set):

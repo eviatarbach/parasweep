@@ -20,8 +20,8 @@ class Sweep(ABC):
 
 class CartesianSweep(Sweep):
     def __init__(self, sweep_parameters, filter=None):
-        self.keys = list(self.sweep_parameters.keys())
-        self.values = list(self.sweep_parameters.values())
+        self.keys = list(sweep_parameters.keys())
+        self.values = list(sweep_parameters.values())
         self.filter = filter
 
         self.lengths = [len(value) for value in self.values]
@@ -32,7 +32,7 @@ class CartesianSweep(Sweep):
 
         return (dict(zip(self.keys, element)) for element in product)
 
-    def mapping(self, sim_ids, sweep_id, save=True):
+    def mapping(self, sim_ids, sweep_id='', save=True):
         import xarray
         import numpy
 

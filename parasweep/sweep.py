@@ -31,25 +31,12 @@ def run_sweep(command, config_paths, template_paths, sweep, sweep_id=None,
     config_paths : list
         List of paths indicating where the configuration files should be saved
         after substitution of the parameters into the templates. Must be in the
-        same order as `template_paths` or `template_texts`.
-    Either
-        **template_paths** (*list*)
-            List of paths of templates to substitute parameters into. Must be
-            in the same order as `config_paths`. Or,
-        **template_texts** (*list*)
-            List of template strings to substitute parameters into. Must be
-            in the same order as `config_paths`.
-    Either
-        **sweep_parameters** (*dict*):
-            Using this option will do a grid sweep (Cartesian product).
-            Dictionary where the keys are the parameter names and the values
-            are lists of parameter values to sweep over. E.g.,
-            `{'x': [1, 2], 'y': [3, 4]}`. Or,
-        **parameter_sets** (*list*):
-            Using this option will run a sweep with the provided parameter
-            sets. List of dictionaries where the keys are the parameter names
-            and the values are the fixed parameter values. E.g.,
-            `[{'x': 1, 'y': 2}, {'x': 3, 'y': 4}]`
+        same order as `template_paths`.
+    template_paths : list
+        List of paths of templates to substitute parameters into. Must be in
+        the same order as `config_paths`.
+    sweep : sweepers.Sweep instance
+        A :class:`parasweep.sweepers.Sweep` object
     sweep_id : str, optional
         A name for the sweep. By default, the name is generated automatically
         from the date and time.
