@@ -6,16 +6,12 @@ from parasweep.namers import SequentialNamer
 from parasweep.dispatchers import PythonSubprocessDispatcher
 from parasweep.templates import PythonFormatTemplate
 
-import itertools
 import time
-import operator
 import datetime
 import os
-from functools import reduce
 
 
-def run_sweep(command, config_paths, template_paths=None, template_texts=None,
-              sweep_parameters={}, parameter_sets=[], sweep_id=None,
+def run_sweep(command, config_paths, template_paths, sweep, sweep_id=None,
               naming=SequentialNamer(),
               dispatcher=PythonSubprocessDispatcher(),
               template_engine=PythonFormatTemplate, run=True, delay=0.0,
@@ -182,45 +178,16 @@ def run_sweep(command, config_paths, template_paths=None, template_texts=None,
     {'0': {'x': 2, 'y': 8, 'z': 5}, '1': {'x': 1, 'y': -4, 'z': 9}}
 
     """
-    if (((template_paths is None) and (template_texts is None))
-            or (not (template_paths is None)
-                and not (template_texts is None))):
-        raise ValueError('Exactly one of `template_paths` or `template_texts` '
-                         'must be provided.')
-
-    if ((sweep_parameters and parameter_sets)
-            or (not sweep_parameters and not parameter_sets)):
-        raise ValueError('Exactly one of `sweep_parameters` or '
-                         '`parameter_sets` must be provided.')
-
-    if (isinstance(config_paths, str) or isinstance(template_paths, str)
-            or isinstance(template_texts, str)):
-        raise TypeError('`config_paths` and `template_paths` or'
-                        '`template_texts` must be a list.')
+    if isinstance(config_paths, str) or isinstance(template_paths, str):
+        raise TypeError('`config_paths` and `template_paths` must be a list.')
 
     if not sweep_id:
         current_time = datetime.datetime.now()
         sweep_id = current_time.strftime('%Y-%m-%dT%H:%M:%S')
 
-    if template_paths:
-        config = template_engine(paths=template_paths)
-    else:
-        config = template_engine(texts=template_texts)
+    config = template_engine(paths=template_paths)
 
-    if sweep_parameters:
-        keys = list(sweep_parameters.keys())
-        values = list(sweep_parameters.values())
-
-        product = itertools.product(*values)
-        lengths = [len(value) for value in values]
-        sweep_length = reduce(operator.mul, lengths, 1)
-    else:
-        keys = parameter_sets[0].keys()
-
-        product = parameter_sets
-        sweep_length = len(parameter_sets)
-
-    naming.start(length=sweep_length)
+    naming.start(length=sweep.sweep_length)
 
     sim_ids = []
     config_filenames = []
@@ -228,15 +195,8 @@ def run_sweep(command, config_paths, template_paths=None, template_texts=None,
     if run:
         dispatcher.initialize_session()
 
-    for param_set in product:
-        if sweep_parameters:
-            sweep_params = {}
-            for index, value in enumerate(param_set):
-                sweep_params[keys[index]] = value
-        else:
-            sweep_params = param_set
-
-        sim_id = naming.next(keys, sweep_params.values())
+    for sweep_params in sweep.generate():
+        sim_id = naming.next(sweep.keys, sweep_params.values())
         sim_ids.append(sim_id)
 
         rendered = config.render(sweep_params)
@@ -267,19 +227,5 @@ def run_sweep(command, config_paths, template_paths=None, template_texts=None,
         for config_filename in config_filenames:
             os.remove(config_filename)
 
-    if mapping and sweep_parameters:
-        import xarray
-        import numpy
-
-        sim_ids_array = xarray.DataArray(numpy.reshape(numpy.array(sim_ids),
-                                                       lengths),
-                                         coords=values, dims=keys,
-                                         name='sim_id')
-
-        sim_ids_filename = 'sim_ids_{}.nc'.format(sweep_id)
-
-        sim_ids_array.to_netcdf(sim_ids_filename)
-
-        return sim_ids_array
-    elif mapping and parameter_sets:
-        return dict(zip(sim_ids, parameter_sets))
+    if mapping:
+        return sweep.mapping(sim_ids)

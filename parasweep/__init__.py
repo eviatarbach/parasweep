@@ -7,3 +7,4 @@ __email__ = 'eviatarbach@protonmail.com'
 __version__ = '2019.01'
 
 from parasweep.sweep import run_sweep
+from parasweep.sweepers import CartesianSweep, SetSweep
