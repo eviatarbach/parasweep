@@ -80,5 +80,5 @@ Classifier: Intended Audience :: Science/Research
 Classifier: License :: OSI Approved :: MIT License
 Classifier: Natural Language :: English
 Classifier: Programming Language :: Python :: 3
-Provides-Extra: DRMAA support
 Provides-Extra: Mako templates
+Provides-Extra: DRMAA support

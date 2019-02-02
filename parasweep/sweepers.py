@@ -57,5 +57,5 @@ class SetSweep(Sweep):
     def generate(self):
         return self.parameter_sets
 
-    def mapping(self, sim_ids):
+    def mapping(self, sim_ids, save=True):
         return dict(zip(sim_ids, self.parameter_sets))

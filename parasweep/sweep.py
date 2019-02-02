@@ -16,7 +16,7 @@ def run_sweep(command, config_paths, template_paths, sweep, sweep_id=None,
               dispatcher=PythonSubprocessDispatcher(),
               template_engine=PythonFormatTemplate, run=True, delay=0.0,
               serial=False, wait=False, cleanup=False, verbose=True,
-              overwrite=True, mapping=True):
+              overwrite=True, save_mapping=True):
     r"""
     Run parameter sweeps.
 
@@ -214,5 +214,4 @@ def run_sweep(command, config_paths, template_paths, sweep, sweep_id=None,
         for config_filename in config_filenames:
             os.remove(config_filename)
 
-    if mapping:
-        return sweep.mapping(sim_ids)
+    return sweep.mapping(sim_ids, save_mapping)

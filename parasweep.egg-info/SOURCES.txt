@@ -12,7 +12,6 @@ docs/history.rst
 docs/index.rst
 docs/installation.rst
 docs/make.bat
-docs/modules.rst
 docs/parasweep.dispatchers.rst
 docs/parasweep.namers.rst
 docs/parasweep.rst
@@ -34,6 +33,7 @@ parasweep/__init__.py
 parasweep/dispatchers.py
 parasweep/namers.py
 parasweep/sweep.py
+parasweep/sweepers.py
 parasweep/templates.py
 parasweep.egg-info/PKG-INFO
 parasweep.egg-info/SOURCES.txt

@@ -13,12 +13,7 @@ class Template(ABC):
 
     """
 
-    def __init__(self, texts=None, paths=None):
-        if (((paths is None) and (texts is None))
-                or (not (paths is None) and not (texts is None))):
-            raise ValueError('Exactly one of `paths` or `texts` must be '
-                             'provided.')
-        self.texts = texts
+    def __init__(self, paths):
         self.paths = paths
         self._load()
 
@@ -44,13 +39,10 @@ class PythonFormatTemplate(Template):
     """Template engine using Python's string formatting."""
 
     def _load(self):
-        if self.paths:
-            self.templates = []
-            for path in self.paths:
-                with open(path, 'r') as template_file:
-                    self.templates.append(template_file.read())
-        else:
-            self.templates = self.texts
+        self.templates = []
+        for path in self.paths:
+            with open(path, 'r') as template_file:
+                self.templates.append(template_file.read())
 
     def render(self, params):
         keys = params.keys()
@@ -100,18 +92,11 @@ class MakoTemplate(Template):
     def _load(self):
         from mako.template import Template
 
-        if self.paths:
-            self.templates = []
-            for path in self.paths:
-                self.templates.append(Template(filename=path,
-                                               input_encoding='utf-8',
-                                               strict_undefined=True))
-        else:
-            self.templates = []
-            for text in self.texts:
-                self.templates.append(Template(text=text,
-                                               input_encoding='utf-8',
-                                               strict_undefined=True))
+        self.templates = []
+        for path in self.paths:
+            self.templates.append(Template(filename=path,
+                                           input_encoding='utf-8',
+                                           strict_undefined=True))
 
     def render(self, params):
         keys = params.keys()
