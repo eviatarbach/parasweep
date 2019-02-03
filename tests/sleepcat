@@ -1,0 +1,14 @@
+import sys
+import time
+
+time.sleep(float(sys.argv[1]))
+
+concatenated = ''
+
+if len(sys.argv) > 3:
+    for filename in sys.argv[2:-1]:
+        with open(filename, 'r') as file:
+            concatenated += file.read()
+
+    with open(sys.argv[-1], 'a') as out:
+        out.write(concatenated)

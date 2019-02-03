@@ -41,6 +41,10 @@ parasweep.egg-info/dependency_links.txt
 parasweep.egg-info/not-zip-safe
 parasweep.egg-info/requires.txt
 parasweep.egg-info/top_level.txt
+tests/1.txt
+tests/2.txt
 tests/__init__.py
-tests/cat.py
+tests/cat
+tests/sleep
+tests/sleepcat
 tests/test_parasweep.py
