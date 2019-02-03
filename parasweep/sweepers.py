@@ -51,6 +51,34 @@ class CartesianSweep(Sweep):
         return sim_ids_array
 
 
+class FilteredCartesianSweep(Sweep):
+    def __init__(self, sweep_parameters, filter_func):
+        self.keys = list(sweep_parameters.keys())
+        self.values = list(sweep_parameters.values())
+
+        product = itertools.product(*self.values)
+
+        # Here we cannot do lazy evaluation since we need the length of the
+        # filtered elements.
+        product_dicts = [dict(zip(self.keys, element)) for element in product]
+        self.filtered = list(filter(lambda d: filter_func(**d), product_dicts))
+        self.sweep_length = len(self.filtered)
+
+    def elements(self):
+        return self.filtered
+
+    def mapping(self, sim_ids, sweep_id, save=True):
+        sim_id_mapping = dict(zip(sim_ids, self.filtered))
+
+        if save:
+            sim_ids_filename = 'sim_ids_{}.json'.format(sweep_id)
+
+            with open(sim_ids_filename, 'w') as sim_ids_file:
+                json.dump(sim_id_mapping, sim_ids_file)
+
+        return sim_id_mapping
+
+
 class SetSweep(Sweep):
     def __init__(self, parameter_sets):
         self.parameter_sets = parameter_sets
