@@ -13,11 +13,11 @@ class Sweep(ABC):
         pass
 
     @abstractmethod
-    def generate(self):
+    def elements(self):
         pass
 
     @abstractmethod
-    def mapping(self, sim_ids, sweep_id='', save=True):
+    def mapping(self, sim_ids, sweep_id, save=True):
         pass
 
 
@@ -30,12 +30,12 @@ class CartesianSweep(Sweep):
         self.lengths = [len(value) for value in self.values]
         self.sweep_length = reduce(operator.mul, self.lengths, 1)
 
-    def generate(self):
+    def elements(self):
         product = itertools.product(*self.values)
 
         return (dict(zip(self.keys, element)) for element in product)
 
-    def mapping(self, sim_ids, sweep_id='', save=True):
+    def mapping(self, sim_ids, sweep_id, save=True):
         import xarray
         import numpy
 
@@ -57,7 +57,7 @@ class SetSweep(Sweep):
         self.keys = parameter_sets[0].keys()
         self.sweep_length = len(parameter_sets)
 
-    def generate(self):
+    def elements(self):
         return self.parameter_sets
 
     def mapping(self, sim_ids, sweep_id, save=True):

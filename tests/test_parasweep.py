@@ -32,7 +32,7 @@ class TestSweep(unittest.TestCase):
             template.seek(0)
 
             run_sweep(' '.join([cat, ' {sim_id}.txt', out.name]),
-                      ['{sim_id}.txt'], template_paths=[template.name],
+                      ['{sim_id}.txt'], templates=[template.name],
                       sweep=CartesianSweep({'x': [1/3, 2/3, 3/3]}),
                       verbose=False, cleanup=True, save_mapping=False)
 
@@ -48,7 +48,7 @@ class TestSweep(unittest.TestCase):
             template.seek(0)
 
             run_sweep(' '.join([cat, '{sim_id}.txt', out.name]),
-                      ['{sim_id}.txt'], template_paths=[template.name],
+                      ['{sim_id}.txt'], templates=[template.name],
                       sweep=CartesianSweep({'x': [1], 'y': [2]}),
                       verbose=False, cleanup=True, save_mapping=False)
 
@@ -67,7 +67,7 @@ class TestSweep(unittest.TestCase):
             run_sweep(' '.join([cat, '{sim_id}_1.txt', '{sim_id}_2.txt',
                                 out.name]),
                       ['{sim_id}_1.txt', '{sim_id}_2.txt'],
-                      template_paths=[template1.name, template2.name],
+                      templates=[template1.name, template2.name],
                       sweep=CartesianSweep({'x': [1/3, 2/3, 3/3], 'y': [4]}),
                       verbose=False, cleanup=True, save_mapping=False)
 
@@ -85,7 +85,7 @@ class TestSweep(unittest.TestCase):
             template.seek(0)
 
             run_sweep(' '.join([cat, '{sim_id}.txt', out.name]),
-                      ['{sim_id}.txt'], template_paths=[template.name],
+                      ['{sim_id}.txt'], templates=[template.name],
                       sweep=CartesianSweep({'x': [1, 2, 3]}),
                       template_engine=MakoTemplate, verbose=False,
                       cleanup=True, save_mapping=False)
@@ -103,7 +103,7 @@ class TestSweep(unittest.TestCase):
             template.seek(0)
 
             run_sweep(' '.join([cat, '{sim_id}.txt', out.name]),
-                      ['{sim_id}.txt'], template_paths=[template.name],
+                      ['{sim_id}.txt'], templates=[template.name],
                       sweep=CartesianSweep({'x': [1, 1, 1]}), wait=True,
                       dispatcher=DRMAADispatcher(), verbose=False,
                       cleanup=True, save_mapping=False)
@@ -117,7 +117,7 @@ class TestSweep(unittest.TestCase):
 
             start_time = time.time()
             run_sweep(' '.join([cat, '{sim_id}.txt']), ['{sim_id}.txt'],
-                      template_paths=[template.name],
+                      templates=[template.name],
                       sweep=CartesianSweep({'x': [1, 2]}), delay=2,
                       verbose=False, cleanup=True, save_mapping=False)
 
@@ -132,7 +132,7 @@ class TestSweep(unittest.TestCase):
 
             start_time = time.time()
             run_sweep(' '.join([sleep, str(2)]), ['{sim_id}.txt'],
-                      template_paths=[template.name],
+                      templates=[template.name],
                       sweep=CartesianSweep({'x': [1, 2]}), serial=True,
                       verbose=False, cleanup=True, save_mapping=False)
 
@@ -140,7 +140,7 @@ class TestSweep(unittest.TestCase):
 
             start_time = time.time()
             run_sweep(' '.join([sleep, str(2)]), ['{sim_id}.txt'],
-                      template_paths=[template.name],
+                      templates=[template.name],
                       sweep=CartesianSweep({'x': [1, 2]}),
                       dispatcher=DRMAADispatcher(), serial=True, verbose=False,
                       cleanup=True, save_mapping=False)
@@ -154,7 +154,7 @@ class TestSweep(unittest.TestCase):
             template.seek(0)
 
             run_sweep(' '.join([sleepcat, str(3), '{sim_id}.txt', out.name]),
-                      ['{sim_id}.txt'], template_paths=[template.name],
+                      ['{sim_id}.txt'], templates=[template.name],
                       sweep=CartesianSweep({'x': [1, 1, 1]}), wait=True,
                       verbose=False, cleanup=True, save_mapping=False)
 
@@ -167,12 +167,12 @@ class TestSweep(unittest.TestCase):
 
             with self.assertRaises(TypeError) as context:
                 run_sweep(' '.join([cat, '{sim_id}.txt']), '{sim_id}.txt',
-                          template_paths=[template.name],
+                          templates=[template.name],
                           sweep=CartesianSweep({'x': [1, 2, 3]}),
                           verbose=False, cleanup=True, save_mapping=False)
 
-                self.assertEqual('`config_paths` and `template_paths` must be '
-                                 'a list.', str(context.exception))
+                self.assertEqual('`configs` and `templates` must be a list.',
+                                 str(context.exception))
 
     def test_param_mapping(self):
         with tempfile.NamedTemporaryFile('w') as template:
@@ -181,7 +181,7 @@ class TestSweep(unittest.TestCase):
 
             param_array = run_sweep(' '.join([cat, '{sim_id}.txt']),
                                     ['{sim_id}.txt'],
-                                    template_paths=[template.name],
+                                    templates=[template.name],
                                     sweep=CartesianSweep({'x': [1, 2],
                                                           'y': [3, 4, 5],
                                                           'z': [6, 7, 8, 9]}),
@@ -199,7 +199,7 @@ class TestSweep(unittest.TestCase):
 
             mapping = run_sweep(' '.join([cat, '{sim_id}.txt', out.name]),
                                 ['{sim_id}.txt'],
-                                template_paths=[template.name],
+                                templates=[template.name],
                                 sweep=SetSweep([{'x': 2, 'y': 8, 'z': 5},
                                                 {'x': 1, 'y': -4, 'z': 9}]),
                                 verbose=False, cleanup=True,
@@ -220,7 +220,7 @@ class TestPythonTemplates(unittest.TestCase):
 
             with self.assertRaises(NameError) as context:
                 run_sweep(' '.join([cat, '{sim_id}.txt']), ['{sim_id}.txt'],
-                          template_paths=[template.name],
+                          templates=[template.name],
                           sweep=CartesianSweep({'x': [1, 2, 3]}),
                           verbose=False, cleanup=True, save_mapping=False)
 
@@ -233,7 +233,7 @@ class TestPythonTemplates(unittest.TestCase):
 
             with self.assertRaises(NameError) as context:
                 run_sweep(' '.join([cat, '{sim_id}.txt']), ['{sim_id}.txt'],
-                          template_paths=[template.name],
+                          templates=[template.name],
                           sweep=CartesianSweep({'x': [1, 2, 3], 'y': [4]}),
                           verbose=False, cleanup=True, save_mapping=False)
 
@@ -251,7 +251,7 @@ class TestMakoTemplates(unittest.TestCase):
 
             with self.assertRaises(NameError) as context:
                 run_sweep(' '.join([cat, '{sim_id}.txt']), ['{sim_id}.txt'],
-                          template_paths=[template.name],
+                          templates=[template.name],
                           sweep=CartesianSweep({'x': [1, 2, 3]}),
                           template_engine=MakoTemplate, verbose=False,
                           cleanup=True, save_mapping=False)
@@ -264,7 +264,7 @@ class TestMakoTemplates(unittest.TestCase):
 
             with self.assertRaises(NameError) as context:
                 run_sweep(' '.join([cat, '{sim_id}.txt']), ['{sim_id}.txt'],
-                          template_paths=[template.name],
+                          templates=[template.name],
                           sweep=CartesianSweep({'x': [1, 2, 3], 'y': [4]}),
                           template_engine=MakoTemplate, verbose=False,
                           cleanup=True, save_mapping=False)

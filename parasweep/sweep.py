@@ -9,12 +9,12 @@ import datetime
 import os
 
 
-def run_sweep(command, config_paths, template_paths, sweep, sweep_id=None,
+def run_sweep(command, configs, templates, sweep, sweep_id=None,
               naming=SequentialNamer(),
               dispatcher=PythonSubprocessDispatcher(),
-              template_engine=PythonFormatTemplate, run=True, delay=0.0,
-              serial=False, wait=False, cleanup=False, verbose=True,
-              overwrite=True, save_mapping=True):
+              template_engine=PythonFormatTemplate, delay=0.0, serial=False,
+              wait=False, cleanup=False, verbose=True, overwrite=True,
+              save_mapping=True):
     r"""
     Run parameter sweeps.
 
@@ -26,13 +26,13 @@ def run_sweep(command, config_paths, template_paths, sweep, sweep_id=None,
     command : str
         The command to run. Must include '{sim_id}' indicating where the
         simulation ID is to be inserted.
-    config_paths : list
+    configs : list
         List of paths indicating where the configuration files should be saved
         after substitution of the parameters into the templates. Must be in the
-        same order as `template_paths`.
-    template_paths : list
+        same order as `templates`.
+    templates : list
         List of paths of templates to substitute parameters into. Must be in
-        the same order as `config_paths`.
+        the same order as `configs`.
     sweep : sweepers.Sweep instance
         A :class:`parasweep.sweepers.Sweep` object
     sweep_id : str, optional
@@ -47,10 +47,8 @@ def run_sweep(command, config_paths, template_paths, sweep, sweep_id=None,
     template_engine : templates.Template class, optional
         A :class:`parasweep.templates.Template` class that specifies the
         template engine to use. By default, uses Python format strings.
-    run : bool, optional
-        Whether to run the parameter sweep. True by default.
     delay : float, optional
-        How many seconds to delay between running successive simulations.
+        How many seconds to delay between dispatching successive simulations.
         0.0 by default.
     serial : bool, optional
         Whether to run simulations serially, i.e., to wait for each simulation
@@ -71,7 +69,7 @@ def run_sweep(command, config_paths, template_paths, sweep, sweep_id=None,
         If False, a `FileExistsError` will be raised when a configuration
         filename coincides with an existing one in the same directory. True by
         default.
-    mapping : bool, optional
+    save_mapping : bool, optional
         Whether to return a mapping between the parameters to the simulation
         IDs. If the sweep is a grid sweep, an N-dimensional labelled array
         (using `xarray`) which maps the parameters to the simulation IDs will
@@ -87,31 +85,35 @@ def run_sweep(command, config_paths, template_paths, sweep, sweep_id=None,
     An example of the basic formatting that can be done with the Python
     formatting templates:
 
-    >>> from parasweep import run_sweep
-    >>> run_sweep('cat {sim_id}.txt', ['{sim_id}.txt'],
-    ...           template_texts=['Hello {x:.2f}\n'],
-    ...           sweep_parameters={'x': [1/3, 2/3, 3/3]},
-    ...           verbose=False, mapping=False)
-    Hello 0.33
-    Hello 0.67
-    Hello 1.00
+        >>> from parasweep import run_sweep, CartesianSweep
+        >>> with open('template.txt', 'w') as template:
+        ...     template.write('Hello {x:.2f}\n')
+        >>> mapping = run_sweep('cat {sim_id}.txt', ['{sim_id}.txt'],
+        ...                     templates=['template.txt'],
+        ...                     sweep=CartesianSweep({'x': [1/3, 2/3, 3/3]}),
+        ...                     verbose=False)
+        Hello 0.33
+        Hello 0.67
+        Hello 1.00
 
     Mako templates provide functionality that is not available with Python
     formatting templates, being able to insert code within the template:
 
-    >>> from parasweep.templates import MakoTemplate
-    >>> run_sweep('cat {sim_id}.txt', ['{sim_id}.txt'],
-    ...           template_texts=['Hello ${x*10}\n'],
-    ...           sweep_parameters={'x': [1, 2, 3]}, verbose=False,
-    ...           template_engine=MakoTemplate, mapping=False)
-    Hello 10
-    Hello 20
-    Hello 30
+        >>> from parasweep.templates import MakoTemplate
+        >>> with open('template.txt', 'w') as template:
+        ...     template.write('Hello ${x*10}\n')
+        >>> run_sweep('cat {sim_id}.txt', ['{sim_id}.txt'],
+        ...           templates=['template.txt'],
+        ...           sweep=CartesianSweep({'x': [1, 2, 3]}), verbose=False,
+        ...           template_engine=MakoTemplate, mapping=False)
+        Hello 10
+        Hello 20
+        Hello 30
 
     Multiple configuration files and their corresponding templates can be used:
 
     >>> run_sweep(command='cat {sim_id}_1.txt {sim_id}_2.txt',
-    ...           config_paths=['{sim_id}_1.txt', '{sim_id}_2.txt'],
+    ...           configs=['{sim_id}_1.txt', '{sim_id}_2.txt'],
     ...           template_texts=['Hello {x:.2f}\n',
     ...                           'Hello again {y}\n'],
     ...           sweep_parameters={'x': [1/3, 2/3, 3/3], 'y': [4]},
@@ -163,29 +165,28 @@ def run_sweep(command, config_paths, template_paths, sweep, sweep_id=None,
     {'0': {'x': 2, 'y': 8, 'z': 5}, '1': {'x': 1, 'y': -4, 'z': 9}}
 
     """
-    if isinstance(config_paths, str) or isinstance(template_paths, str):
-        raise TypeError('`config_paths` and `template_paths` must be a list.')
+    if isinstance(configs, str) or isinstance(templates, str):
+        raise TypeError('`configs` and `templates` must be a list.')
 
     if not sweep_id:
         current_time = datetime.datetime.now()
         sweep_id = current_time.strftime('%Y-%m-%dT%H:%M:%S')
 
-    config = template_engine(paths=template_paths)
+    config = template_engine(paths=templates)
 
     naming.start(length=sweep.sweep_length)
 
     sim_ids = []
     config_filenames = []
 
-    if run:
-        dispatcher.initialize_session()
+    dispatcher.initialize_session()
 
-    for sweep_params in sweep.generate():
+    for sweep_params in sweep.elements():
         sim_id = naming.next(sweep.keys, sweep_params.values())
         sim_ids.append(sim_id)
 
         rendered = config.render(sweep_params)
-        for config_rendered, config_path in zip(rendered, config_paths):
+        for config_rendered, config_path in zip(rendered, configs):
             config_filename = config_path.format(sim_id=sim_id)
             config_filenames.append(config_filename)
             if not overwrite:
@@ -195,19 +196,19 @@ def run_sweep(command, config_paths, template_paths, sweep, sweep_id=None,
                                           'overwrite.'.format(config_filename))
             with open(config_filename, 'wb') as config_file:
                 config_file.write(config_rendered.encode('utf-8', 'replace'))
-        if run:
-            if verbose:
-                print('Running simulation {} with parameters:'.format(sim_id))
-                print('\n'.join('{}: {}'.format(key, param) for key, param
-                                in sweep_params.items()))
-            dispatcher.dispatch(command.format(sim_id=sim_id), serial)
-            if delay:
-                time.sleep(delay)
 
-    if wait and run:
+        if verbose:
+            print('Running simulation {} with parameters:'.format(sim_id))
+            print('\n'.join('{}: {}'.format(key, param) for key, param
+                            in sweep_params.items()))
+        dispatcher.dispatch(command.format(sim_id=sim_id), serial)
+        if delay:
+            time.sleep(delay)
+
+    if wait:
         dispatcher.wait_all()
 
-    if cleanup and run:
+    if cleanup:
         dispatcher.wait_all()
         for config_filename in config_filenames:
             os.remove(config_filename)
