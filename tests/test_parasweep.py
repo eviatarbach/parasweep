@@ -10,9 +10,14 @@ from parasweep.namers import SequentialNamer
 import unittest
 import tempfile
 import time
+import warnings
 
 
 class TestSweep(unittest.TestCase):
+    def setUp(self):
+        warnings.simplefilter("ignore", ResourceWarning)
+        warnings.simplefilter('ignore', ImportWarning)
+
     def test_basic(self):
         with tempfile.NamedTemporaryFile('r') as out, \
                 tempfile.NamedTemporaryFile('w') as template:
@@ -21,10 +26,13 @@ class TestSweep(unittest.TestCase):
 
             run_sweep('cat {sim_id}.txt >> ' + out.name, ['{sim_id}.txt'],
                       template_paths=[template.name],
-                      sweep=CartesianSweep({'x': [1/3, 2/3, 3/3]}))
+                      sweep=CartesianSweep({'x': [1/3, 2/3, 3/3]}),
+                      verbose=False, cleanup=True, save_mapping=False)
 
-            self.assertEqual(out.read(),
-                             'Hello 0.33\nHello 0.67\nHello 1.00\n')
+            # Check unordered, because we can't guarantee order
+            self.assertEqual(set(out.read().split()),
+                             set(('Hello 0.33\nHello 0.67\n'
+                                  'Hello 1.00\n').split()))
 
     def test_single(self):
         with tempfile.NamedTemporaryFile('r') as out, \
@@ -34,7 +42,8 @@ class TestSweep(unittest.TestCase):
 
             run_sweep('cat {sim_id}.txt >> ' + out.name, ['{sim_id}.txt'],
                       template_paths=[template.name],
-                      sweep=CartesianSweep({'x': [1], 'y': [2]}))
+                      sweep=CartesianSweep({'x': [1], 'y': [2]}),
+                      verbose=False, cleanup=True, save_mapping=False)
 
             self.assertEqual(out.read(), 'Hello 1, 2\n')
 
@@ -42,20 +51,22 @@ class TestSweep(unittest.TestCase):
         with tempfile.NamedTemporaryFile('r') as out, \
                 tempfile.NamedTemporaryFile('w') as template1, \
                 tempfile.NamedTemporaryFile('w') as template2:
-            template1.write('Hello {x:.2f}\n')
+            template1.write('Hello {x:.2f}, ')
             template1.seek(0)
 
-            template2.write('Hello again {y}\n')
+            template2.write('hello again {y}\n')
             template2.seek(0)
 
             run_sweep('cat {sim_id}_1.txt {sim_id}_2.txt >> ' + out.name,
                       ['{sim_id}_1.txt', '{sim_id}_2.txt'],
                       template_paths=[template1.name, template2.name],
-                      sweep=CartesianSweep({'x': [1/3, 2/3, 3/3], 'y': [4]}))
+                      sweep=CartesianSweep({'x': [1/3, 2/3, 3/3], 'y': [4]}),
+                      verbose=False, cleanup=True, save_mapping=False)
 
-            self.assertEqual(out.read(),
-                             'Hello 0.33\nHello again 4\nHello 0.67\n'
-                             'Hello again 4\nHello 1.00\nHello again 4\n')
+            self.assertEqual(set(out.read().split()),
+                             set(('Hello 0.33, hello again 4\nHello 0.67, '
+                                  'hello again 4\nHello 1.00, '
+                                  'hello again 4\n').split()))
 
     def test_mako(self):
         from parasweep.templates import MakoTemplate
@@ -68,9 +79,11 @@ class TestSweep(unittest.TestCase):
             run_sweep('cat {sim_id}.txt >> ' + out.name, ['{sim_id}.txt'],
                       template_paths=[template.name],
                       sweep=CartesianSweep({'x': [1, 2, 3]}),
-                      template_engine=MakoTemplate)
+                      template_engine=MakoTemplate, verbose=False,
+                      cleanup=True, save_mapping=False)
 
-            self.assertEqual(out.read(), 'Hello 10\nHello 20\nHello 30\n')
+            self.assertEqual(set(out.read().split()),
+                             set('Hello 10\nHello 20\nHello 30\n'.split()))
 
     def test_drmaa(self):
         from parasweep.dispatchers import DRMAADispatcher
@@ -83,7 +96,8 @@ class TestSweep(unittest.TestCase):
             run_sweep('cat {sim_id}.txt >> ' + out.name, ['{sim_id}.txt'],
                       template_paths=[template.name],
                       sweep=CartesianSweep({'x': [1, 1, 1]}), wait=True,
-                      dispatcher=DRMAADispatcher())
+                      dispatcher=DRMAADispatcher(), verbose=False,
+                      cleanup=True, save_mapping=False)
 
             self.assertEqual(out.read(), 'Hello 1\nHello 1\nHello 1\n')
 
@@ -95,7 +109,8 @@ class TestSweep(unittest.TestCase):
             start_time = time.time()
             run_sweep('cat {sim_id}.txt', ['{sim_id}.txt'],
                       template_paths=[template.name],
-                      sweep=CartesianSweep({'x': [1, 2]}), delay=2)
+                      sweep=CartesianSweep({'x': [1, 2]}), delay=2,
+                      verbose=False, cleanup=True, save_mapping=False)
 
             self.assertGreater(time.time() - start_time, 4)
 
@@ -109,7 +124,8 @@ class TestSweep(unittest.TestCase):
             start_time = time.time()
             run_sweep('sleep 2', ['{sim_id}.txt'],
                       template_paths=[template.name],
-                      sweep=CartesianSweep({'x': [1, 2]}), serial=True)
+                      sweep=CartesianSweep({'x': [1, 2]}), serial=True,
+                      verbose=False, cleanup=True, save_mapping=False)
 
             self.assertGreater(time.time() - start_time, 4)
 
@@ -117,7 +133,8 @@ class TestSweep(unittest.TestCase):
             run_sweep('sleep 2', ['{sim_id}.txt'],
                       template_paths=[template.name],
                       sweep=CartesianSweep({'x': [1, 2]}),
-                      dispatcher=DRMAADispatcher(), serial=True)
+                      dispatcher=DRMAADispatcher(), serial=True, verbose=False,
+                      cleanup=True, save_mapping=False)
 
             self.assertGreater(time.time() - start_time, 4)
 
@@ -129,7 +146,8 @@ class TestSweep(unittest.TestCase):
 
             run_sweep('sleep 3; cat {sim_id}.txt >> ' + out.name,
                       ['{sim_id}.txt'], template_paths=[template.name],
-                      sweep=CartesianSweep({'x': [1, 1, 1]}), wait=True)
+                      sweep=CartesianSweep({'x': [1, 1, 1]}), wait=True,
+                      verbose=False, cleanup=True, save_mapping=False)
 
             self.assertEqual(out.read(), 'Hello 1\nHello 1\nHello 1\n')
 
@@ -141,7 +159,8 @@ class TestSweep(unittest.TestCase):
             with self.assertRaises(TypeError) as context:
                 run_sweep('cat {sim_id}.txt', '{sim_id}.txt',
                           template_paths=[template.name],
-                          sweep=CartesianSweep({'x': [1, 2, 3]}))
+                          sweep=CartesianSweep({'x': [1, 2, 3]}),
+                          verbose=False, cleanup=True, save_mapping=False)
 
                 self.assertEqual('`config_paths` and `template_paths` must be '
                                  'a list.', str(context.exception))
@@ -155,7 +174,9 @@ class TestSweep(unittest.TestCase):
                                     template_paths=[template.name],
                                     sweep=CartesianSweep({'x': [1, 2],
                                                           'y': [3, 4, 5],
-                                                          'z': [6, 7, 8, 9]}))
+                                                          'z': [6, 7, 8, 9]}),
+                                    verbose=False, cleanup=True,
+                                    save_mapping=False)
 
             self.assertEqual(param_array.coords.dims, ('x', 'y', 'z'))
             self.assertEqual(param_array.shape, (2, 3, 4))
@@ -171,9 +192,11 @@ class TestSweep(unittest.TestCase):
                                 template_paths=[template.name],
                                 sweep=SetSweep([{'x': 2, 'y': 8, 'z': 5},
                                                 {'x': 1, 'y': -4, 'z': 9}]),
-                                wait=True)
+                                verbose=False, cleanup=True,
+                                save_mapping=False)
 
-            self.assertEqual(out.read(), 'Hello 2, 8, 5\nHello 1, -4, 9\n')
+            self.assertEqual(set(out.read().split()),
+                             set('Hello 2, 8, 5\nHello 1, -4, 9\n'.split()))
             self.assertEqual(mapping, {'0': {'x': 2, 'y': 8, 'z': 5},
                                        '1': {'x': 1, 'y': -4, 'z': 9}})
 
@@ -187,7 +210,8 @@ class TestPythonTemplates(unittest.TestCase):
             with self.assertRaises(NameError) as context:
                 run_sweep('cat {sim_id}.txt', ['{sim_id}.txt'],
                           template_paths=[template.name],
-                          sweep=CartesianSweep({'x': [1, 2, 3]}))
+                          sweep=CartesianSweep({'x': [1, 2, 3]}),
+                          verbose=False, cleanup=True, save_mapping=False)
 
                 self.assertEqual("The name 'z' is used in the template but "
                                  "not provided.", str(context.exception))
@@ -199,7 +223,8 @@ class TestPythonTemplates(unittest.TestCase):
             with self.assertRaises(NameError) as context:
                 run_sweep('cat {sim_id}.txt', ['{sim_id}.txt'],
                           template_paths=[template.name],
-                          sweep=CartesianSweep({'x': [1, 2, 3], 'y': [4]}))
+                          sweep=CartesianSweep({'x': [1, 2, 3], 'y': [4]}),
+                          verbose=False, cleanup=True, save_mapping=False)
 
                 self.assertEqual("The names {'y'} are not used in the "
                                  "template.", str(context.exception))
@@ -217,7 +242,8 @@ class TestMakoTemplates(unittest.TestCase):
                 run_sweep('cat {sim_id}.txt', ['{sim_id}.txt'],
                           template_paths=[template.name],
                           sweep=CartesianSweep({'x': [1, 2, 3]}),
-                          template_engine=MakoTemplate)
+                          template_engine=MakoTemplate, verbose=False,
+                          cleanup=True, save_mapping=False)
 
                 self.assertEqual("'z' is not defined", str(context.exception))
 
@@ -229,7 +255,8 @@ class TestMakoTemplates(unittest.TestCase):
                 run_sweep('cat {sim_id}.txt', ['{sim_id}.txt'],
                           template_paths=[template.name],
                           sweep=CartesianSweep({'x': [1, 2, 3], 'y': [4]}),
-                          template_engine=MakoTemplate)
+                          template_engine=MakoTemplate, verbose=False,
+                          cleanup=True, save_mapping=False)
 
                 self.assertEqual("The names {'y'} are not used in the "
                                  "template.", str(context.exception))

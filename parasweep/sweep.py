@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Main sweep functionality.
-"""
+"""Main sweep functionality."""
 from parasweep.namers import SequentialNamer
 from parasweep.dispatchers import PythonSubprocessDispatcher
 from parasweep.templates import PythonFormatTemplate
@@ -214,4 +212,4 @@ def run_sweep(command, config_paths, template_paths, sweep, sweep_id=None,
         for config_filename in config_filenames:
             os.remove(config_filename)
 
-    return sweep.mapping(sim_ids, save_mapping)
+    return sweep.mapping(sim_ids, sweep_id, save_mapping)

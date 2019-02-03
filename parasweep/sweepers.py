@@ -2,10 +2,12 @@ from abc import ABC, abstractmethod
 import itertools
 import operator
 from functools import reduce
+import json
 
 
 class Sweep(ABC):
-    """Sweeps must define an iteration as well as a type of mapping"""
+    """Sweeps must define an iteration as well as a type of mapping."""
+
     @abstractmethod
     def __init__(self, *args, **kwargs):
         pass
@@ -14,7 +16,8 @@ class Sweep(ABC):
     def generate(self):
         pass
 
-    def mapping(self, sim_ids, save=True):
+    @abstractmethod
+    def mapping(self, sim_ids, sweep_id='', save=True):
         pass
 
 
@@ -57,5 +60,13 @@ class SetSweep(Sweep):
     def generate(self):
         return self.parameter_sets
 
-    def mapping(self, sim_ids, save=True):
-        return dict(zip(sim_ids, self.parameter_sets))
+    def mapping(self, sim_ids, sweep_id, save=True):
+        sim_id_mapping = dict(zip(sim_ids, self.parameter_sets))
+
+        if save:
+            sim_ids_filename = 'sim_ids_{}.json'.format(sweep_id)
+
+            with open(sim_ids_filename, 'w') as sim_ids_file:
+                json.dump(sim_id_mapping, sim_ids_file)
+
+        return sim_id_mapping
