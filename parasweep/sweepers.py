@@ -5,6 +5,24 @@ from functools import reduce
 import json
 
 
+def _sparse_mapping(parameter_sets, sim_ids, sweep_id, save):
+    """
+    Mapping function for sparse sweeps (not a full n-dimensional array).
+
+    Returns a dictionary mapping simulation IDs to the parameter set used for
+    that simulation.
+    """
+    sim_id_mapping = dict(zip(sim_ids, parameter_sets))
+
+    if save:
+        sim_ids_filename = 'sim_ids_{}.json'.format(sweep_id)
+
+        with open(sim_ids_filename, 'w') as sim_ids_file:
+            json.dump(sim_id_mapping, sim_ids_file)
+
+    return sim_id_mapping
+
+
 class Sweep(ABC):
     """Sweeps must define an iteration as well as a type of mapping."""
 
@@ -22,9 +40,9 @@ class Sweep(ABC):
 
 
 class CartesianSweep(Sweep):
-    def __init__(self, sweep_parameters, filter=None):
-        self.keys = list(sweep_parameters.keys())
-        self.values = list(sweep_parameters.values())
+    def __init__(self, sweep_params, filter=None):
+        self.keys = list(sweep_params.keys())
+        self.values = list(sweep_params.values())
         self.filter = filter
 
         self.lengths = [len(value) for value in self.values]
@@ -52,9 +70,9 @@ class CartesianSweep(Sweep):
 
 
 class FilteredCartesianSweep(Sweep):
-    def __init__(self, sweep_parameters, filter_func):
-        self.keys = list(sweep_parameters.keys())
-        self.values = list(sweep_parameters.values())
+    def __init__(self, sweep_params, filter_func):
+        self.keys = list(sweep_params.keys())
+        self.values = list(sweep_params.values())
 
         product = itertools.product(*self.values)
 
@@ -68,33 +86,17 @@ class FilteredCartesianSweep(Sweep):
         return self.filtered
 
     def mapping(self, sim_ids, sweep_id, save=True):
-        sim_id_mapping = dict(zip(sim_ids, self.filtered))
-
-        if save:
-            sim_ids_filename = 'sim_ids_{}.json'.format(sweep_id)
-
-            with open(sim_ids_filename, 'w') as sim_ids_file:
-                json.dump(sim_id_mapping, sim_ids_file)
-
-        return sim_id_mapping
+        return _sparse_mapping(self.filtered, sim_ids, sweep_id, save)
 
 
 class SetSweep(Sweep):
-    def __init__(self, parameter_sets):
-        self.parameter_sets = parameter_sets
-        self.keys = parameter_sets[0].keys()
-        self.sweep_length = len(parameter_sets)
+    def __init__(self, param_sets):
+        self.parameter_sets = param_sets
+        self.keys = param_sets[0].keys()
+        self.sweep_length = len(param_sets)
 
     def elements(self):
         return self.parameter_sets
 
     def mapping(self, sim_ids, sweep_id, save=True):
-        sim_id_mapping = dict(zip(sim_ids, self.parameter_sets))
-
-        if save:
-            sim_ids_filename = 'sim_ids_{}.json'.format(sweep_id)
-
-            with open(sim_ids_filename, 'w') as sim_ids_file:
-                json.dump(sim_id_mapping, sim_ids_file)
-
-        return sim_id_mapping
+        return _sparse_mapping(self.parameter_sets, sim_ids, sweep_id, save)

@@ -7,18 +7,14 @@ class Template(ABC):
     """
     Abstract base class for template engines.
 
-    Subclasses should implement the `_load` and `render` methods. Make sure to
+    Subclasses should implement the `load` and `render` methods. Make sure to
     implement errors for providing parameters not present in the template, and
     for using parameters in the template that are not provided.
 
     """
 
-    def __init__(self, paths):
-        self.paths = paths
-        self._load()
-
     @abstractmethod
-    def _load(self):
+    def load(self, paths):
         pass
 
     @abstractmethod
@@ -38,9 +34,9 @@ class Template(ABC):
 class PythonFormatTemplate(Template):
     """Template engine using Python's string formatting."""
 
-    def _load(self):
+    def load(self, paths):
         self.templates = []
-        for path in self.paths:
+        for path in paths:
             with open(path, 'r') as template_file:
                 self.templates.append(template_file.read())
 
@@ -89,11 +85,11 @@ def _mako_template_names(template):
 class MakoTemplate(Template):
     """Template engine using Mako."""
 
-    def _load(self):
+    def load(self, paths):
         from mako.template import Template
 
         self.templates = []
-        for path in self.paths:
+        for path in paths:
             self.templates.append(Template(filename=path,
                                            input_encoding='utf-8',
                                            strict_undefined=True))

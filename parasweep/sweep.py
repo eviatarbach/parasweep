@@ -12,7 +12,7 @@ import os
 def run_sweep(command, configs, templates, sweep, sweep_id=None,
               naming=SequentialNamer(),
               dispatcher=PythonSubprocessDispatcher(),
-              template_engine=PythonFormatTemplate, delay=0.0, serial=False,
+              template_engine=PythonFormatTemplate(), delay=0.0, serial=False,
               wait=False, cleanup=False, verbose=True, overwrite=True,
               save_mapping=True):
     r"""
@@ -172,7 +172,7 @@ def run_sweep(command, configs, templates, sweep, sweep_id=None,
         current_time = datetime.datetime.now()
         sweep_id = current_time.strftime('%Y-%m-%dT%H:%M:%S')
 
-    config = template_engine(paths=templates)
+    template_engine.load(paths=templates)
 
     naming.start(length=sweep.sweep_length)
 
@@ -185,7 +185,7 @@ def run_sweep(command, configs, templates, sweep, sweep_id=None,
         sim_id = naming.next(sweep.keys, sweep_params.values())
         sim_ids.append(sim_id)
 
-        rendered = config.render(sweep_params)
+        rendered = template_engine.render(sweep_params)
         for config_rendered, config_path in zip(rendered, configs):
             config_filename = config_path.format(sim_id=sim_id)
             config_filenames.append(config_filename)

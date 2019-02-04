@@ -3,7 +3,8 @@ Test suite.
 
 Some tests rely on drmaa, Mako, or xarray being installed.
 """
-from parasweep import run_sweep, CartesianSweep, SetSweep
+from parasweep import run_sweep
+from parasweep import CartesianSweep, FilteredCartesianSweep, SetSweep
 from parasweep.namers import SequentialNamer
 
 import unittest
@@ -11,6 +12,7 @@ import tempfile
 import time
 import warnings
 import os
+import json
 
 # Use a Python "cat" and "sleep" command to make it more cross-platform
 cat = ' '.join(['python', os.path.join(os.path.dirname(__file__), 'cat')])
@@ -87,7 +89,7 @@ class TestSweep(unittest.TestCase):
             run_sweep(' '.join([cat, '{sim_id}.txt', out.name]),
                       ['{sim_id}.txt'], templates=[template.name],
                       sweep=CartesianSweep({'x': [1, 2, 3]}),
-                      template_engine=MakoTemplate, verbose=False,
+                      template_engine=MakoTemplate(), verbose=False,
                       cleanup=True, save_mapping=False)
 
             self.assertEqual(set(out.read().splitlines()),
@@ -171,10 +173,12 @@ class TestSweep(unittest.TestCase):
                           sweep=CartesianSweep({'x': [1, 2, 3]}),
                           verbose=False, cleanup=True, save_mapping=False)
 
-                self.assertEqual('`configs` and `templates` must be a list.',
-                                 str(context.exception))
+            self.assertEqual('`configs` and `templates` must be a list.',
+                             str(context.exception))
 
     def test_param_mapping(self):
+        import xarray
+
         with tempfile.NamedTemporaryFile('w') as template:
             template.write('Hello {x} {y} {z}\n')
             template.seek(0)
@@ -186,10 +190,19 @@ class TestSweep(unittest.TestCase):
                                                           'y': [3, 4, 5],
                                                           'z': [6, 7, 8, 9]}),
                                     verbose=False, cleanup=True,
-                                    save_mapping=False)
+                                    sweep_id='test', save_mapping=True)
 
             self.assertEqual(param_array.coords.dims, ('x', 'y', 'z'))
             self.assertEqual(param_array.shape, (2, 3, 4))
+
+            self.assertTrue(os.path.isfile('sim_ids_test.nc'))
+
+            all_equal = (param_array
+                         == xarray.open_dataarray('sim_ids_test.nc')).all()
+            self.assertTrue(all_equal)
+
+            os.remove('sim_ids_test.nc')
+
 
     def test_parameter_sets(self):
         with tempfile.NamedTemporaryFile('r') as out, \
@@ -203,13 +216,66 @@ class TestSweep(unittest.TestCase):
                                 sweep=SetSweep([{'x': 2, 'y': 8, 'z': 5},
                                                 {'x': 1, 'y': -4, 'z': 9}]),
                                 verbose=False, cleanup=True,
-                                save_mapping=False)
+                                sweep_id='test1', save_mapping=True)
 
             self.assertEqual(set(out.read().splitlines()),
                              set(('Hello 2, 8, 5\n'
                                   'Hello 1, -4, 9\n').splitlines()))
             self.assertEqual(mapping, {'0': {'x': 2, 'y': 8, 'z': 5},
                                        '1': {'x': 1, 'y': -4, 'z': 9}})
+
+            self.assertTrue(os.path.isfile('sim_ids_test1.json'))
+
+            with open('sim_ids_test1.json', 'r') as json_file:
+                self.assertEqual(mapping, json.load(json_file))
+
+            os.remove('sim_ids_test1.json')
+
+    def test_filtered_cartesian(self):
+        with tempfile.NamedTemporaryFile('r') as out, \
+                tempfile.NamedTemporaryFile('w') as template:
+            template.write('Hello {x}, {y}\n')
+            template.seek(0)
+
+            sweep = FilteredCartesianSweep({'x': [1, 2, 3], 'y': [1, 2, 3]},
+                                           filter_func=lambda x, y: x > y)
+            mapping = run_sweep(' '.join([cat, '{sim_id}.txt', out.name]),
+                                ['{sim_id}.txt'], templates=[template.name],
+                                sweep=sweep, verbose=False, cleanup=True,
+                                sweep_id='test2', save_mapping=True)
+
+            self.assertEqual(set(out.read().splitlines()),
+                             set(('Hello 2, 1\nHello 3, 1\n'
+                                  'Hello 3, 2').splitlines()))
+
+            self.assertTrue(os.path.isfile('sim_ids_test2.json'))
+
+            with open('sim_ids_test2.json', 'r') as json_file:
+                self.assertEqual(mapping, json.load(json_file))
+
+            os.remove('sim_ids_test2.json')
+
+    def test_overwrite(self):
+        with tempfile.NamedTemporaryFile('w') as template:
+            template.write('Hello {x}\n')
+            template.seek(0)
+
+            run_sweep(' '.join([cat, ' {sim_id}.txt']),
+                      ['{sim_id}.txt'], templates=[template.name],
+                      sweep=CartesianSweep({'x': [1]}),
+                      verbose=False, cleanup=False, save_mapping=False)
+
+            with self.assertRaises(FileExistsError) as context:
+                run_sweep(' '.join([cat, ' {sim_id}.txt']),
+                          ['{sim_id}.txt'], templates=[template.name],
+                          sweep=CartesianSweep({'x': [1]}),
+                          verbose=False, cleanup=False, save_mapping=False,
+                          overwrite=False)
+
+            self.assertEqual('0.txt exists, set `overwrite` to True to '
+                             'overwrite.', str(context.exception))
+
+            os.remove('0.txt')
 
 
 class TestPythonTemplates(unittest.TestCase):
@@ -224,8 +290,8 @@ class TestPythonTemplates(unittest.TestCase):
                           sweep=CartesianSweep({'x': [1, 2, 3]}),
                           verbose=False, cleanup=True, save_mapping=False)
 
-                self.assertEqual("The name 'z' is used in the template but "
-                                 "not provided.", str(context.exception))
+                self.assertEqual("The name 'z' is used in the template but not"
+                                 " provided.", str(context.exception))
 
             template.seek(0)
             template.write('Hello {x}\n')
@@ -253,7 +319,7 @@ class TestMakoTemplates(unittest.TestCase):
                 run_sweep(' '.join([cat, '{sim_id}.txt']), ['{sim_id}.txt'],
                           templates=[template.name],
                           sweep=CartesianSweep({'x': [1, 2, 3]}),
-                          template_engine=MakoTemplate, verbose=False,
+                          template_engine=MakoTemplate(), verbose=False,
                           cleanup=True, save_mapping=False)
 
                 self.assertEqual("'z' is not defined", str(context.exception))
@@ -266,7 +332,7 @@ class TestMakoTemplates(unittest.TestCase):
                 run_sweep(' '.join([cat, '{sim_id}.txt']), ['{sim_id}.txt'],
                           templates=[template.name],
                           sweep=CartesianSweep({'x': [1, 2, 3], 'y': [4]}),
-                          template_engine=MakoTemplate, verbose=False,
+                          template_engine=MakoTemplate(), verbose=False,
                           cleanup=True, save_mapping=False)
 
                 self.assertEqual("The names {'y'} are not used in the "
