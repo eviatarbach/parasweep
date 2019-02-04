@@ -182,7 +182,7 @@ def run_sweep(command, configs, templates, sweep, sweep_id=None,
     dispatcher.initialize_session()
 
     for param_set in sweep.elements():
-        sim_id = namer.next(param_set)
+        sim_id = namer.generate_id(param_set)
         sim_ids.append(sim_id)
 
         rendered = template_engine.render(param_set)

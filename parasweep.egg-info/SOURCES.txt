@@ -43,6 +43,7 @@ parasweep.egg-info/requires.txt
 parasweep.egg-info/top_level.txt
 tests/__init__.py
 tests/cat
+tests/err
 tests/sleep
 tests/sleepcat
 tests/test_parasweep.py

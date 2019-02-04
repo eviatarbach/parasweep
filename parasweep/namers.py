@@ -23,7 +23,7 @@ class Namer(ABC):
         pass
 
     @abstractmethod
-    def next(self, param_set):
+    def generate_id(self, param_set):
         """Generate simulation ID for a given parameter set.
 
         Parameters
@@ -42,9 +42,9 @@ class SequentialNamer(Namer):
     --------
     >>> counter = SequentialNamer()
     >>> counter.start(length=11)
-    >>> counter.next(['key1'], [['key_value1']])
+    >>> counter.generate_id({'key1': 'value1'})
     '00'
-    >>> counter.next(['key2'], [['key_value2']])
+    >>> counter.generate_id({'key2': 'value2'})
     '01'
 
     """
@@ -73,7 +73,7 @@ class SequentialNamer(Namer):
                           else 1)
         self.length = length
 
-    def next(self, param_set):
+    def generate_id(self, param_set):
         if self.count + 1 >= self.length + self.start_at:
             raise StopIteration
         self.count += 1

@@ -13,6 +13,8 @@ import time
 import warnings
 import os
 import json
+import contextlib
+import io
 
 # Use a Python "cat" and "sleep" command to make it more cross-platform
 cat = ' '.join(['python', os.path.join(os.path.dirname(__file__), 'cat')])
@@ -20,6 +22,7 @@ sleep = ' '.join(['python',
                   os.path.join(os.path.dirname(__file__), 'sleep')])
 sleepcat = ' '.join(['python',
                      os.path.join(os.path.dirname(__file__), 'sleepcat')])
+err = ' '.join(['python', os.path.join(os.path.dirname(__file__), 'err')])
 
 
 class TestSweep(unittest.TestCase):
@@ -98,6 +101,7 @@ class TestSweep(unittest.TestCase):
 
     def test_drmaa(self):
         from parasweep.dispatchers import DRMAADispatcher
+        from drmaa import JobTemplate
 
         with tempfile.NamedTemporaryFile('r') as out, \
                 tempfile.NamedTemporaryFile('w') as template:
@@ -111,6 +115,19 @@ class TestSweep(unittest.TestCase):
                       cleanup=True, save_mapping=False)
 
             self.assertEqual(out.read(), 'Hello 1\nHello 1\nHello 1\n')
+
+            jt = JobTemplate(errorPath=':err_test.txt')
+            run_sweep(' '.join([err, '{sim_id}']),
+                      ['{sim_id}.txt'], templates=[template.name],
+                      sweep=CartesianSweep({'x': [1]}), wait=True,
+                      dispatcher=DRMAADispatcher(jt), verbose=False,
+                      cleanup=True, save_mapping=False)
+
+            with open('err_test.txt', 'r') as error_file:
+                self.assertEqual('Error, simulation ID: 0\n',
+                                 error_file.read())
+
+            os.remove('err_test.txt')
 
     def test_delay(self):
         with tempfile.NamedTemporaryFile('w') as template:
@@ -277,6 +294,22 @@ class TestSweep(unittest.TestCase):
 
             os.remove('0.txt')
 
+    def test_verbose(self):
+        with tempfile.NamedTemporaryFile('w') as template:
+            template.write('Hello {x}\n')
+            template.seek(0)
+
+            temp_stdout = io.StringIO()
+            with contextlib.redirect_stdout(temp_stdout):
+                run_sweep(' '.join([cat, ' {sim_id}.txt']),
+                          ['{sim_id}.txt'], templates=[template.name],
+                          sweep=CartesianSweep({'x': [1]}),
+                          verbose=True, cleanup=True, save_mapping=False)
+
+            self.assertEqual(temp_stdout.getvalue(),
+                             'Running simulation 0 with parameters:\nx: 1\n')
+
+
 
 class TestPythonTemplates(unittest.TestCase):
     def test_errors(self):
@@ -290,10 +323,10 @@ class TestPythonTemplates(unittest.TestCase):
                           sweep=CartesianSweep({'x': [1, 2, 3]}),
                           verbose=False, cleanup=True, save_mapping=False)
 
-                self.assertEqual("The name 'z' is used in the template but not"
-                                 " provided.", str(context.exception))
+            self.assertEqual("The name 'z' is used in the template but not "
+                             "provided.", str(context.exception))
 
-            template.seek(0)
+            template.truncate(0)
             template.write('Hello {x}\n')
             template.seek(0)
 
@@ -303,8 +336,8 @@ class TestPythonTemplates(unittest.TestCase):
                           sweep=CartesianSweep({'x': [1, 2, 3], 'y': [4]}),
                           verbose=False, cleanup=True, save_mapping=False)
 
-                self.assertEqual("The names {'y'} are not used in the "
-                                 "template.", str(context.exception))
+            self.assertEqual("The names {'y'} are not used in the "
+                             "template.", str(context.exception))
 
 
 class TestMakoTemplates(unittest.TestCase):
@@ -322,9 +355,9 @@ class TestMakoTemplates(unittest.TestCase):
                           template_engine=MakoTemplate(), verbose=False,
                           cleanup=True, save_mapping=False)
 
-                self.assertEqual("'z' is not defined", str(context.exception))
+            self.assertEqual("'z' is not defined", str(context.exception))
 
-            template.seek(0)
+            template.truncate(0)
             template.write('Hello ${x*10}\n')
             template.seek(0)
 
@@ -335,8 +368,8 @@ class TestMakoTemplates(unittest.TestCase):
                           template_engine=MakoTemplate(), verbose=False,
                           cleanup=True, save_mapping=False)
 
-                self.assertEqual("The names {'y'} are not used in the "
-                                 "template.", str(context.exception))
+            self.assertEqual("The names {'y'} are not used in the "
+                             "template.", str(context.exception))
 
 
 class TestNamers(unittest.TestCase):
@@ -344,15 +377,15 @@ class TestNamers(unittest.TestCase):
         counter = SequentialNamer()
         counter.start(length=11)
 
-        self.assertEqual(counter.next(['key1'], [['key_value1']]), '00')
-        self.assertEqual(counter.next(['key2'], [['key_value2']]), '01')
+        self.assertEqual(counter.generate_id({'key1': 'value1'}), '00')
+        self.assertEqual(counter.generate_id({'key2': 'value2'}), '01')
 
         counter = SequentialNamer(zfill=3, start_at=3)
         counter.start(length=2)
 
-        self.assertEqual(counter.next(['key1'], [['key_value1']]), '003')
+        self.assertEqual(counter.generate_id({'key1': 'value1'}), '003')
 
-        counter.next(['key2'], [['key_value2']])
+        counter.generate_id({'key2': 'value2'})
 
         with self.assertRaises(StopIteration):
-            counter.next(['key3'], [['key_value3']])
+            counter.generate_id({'key3': 'key_value3'})
