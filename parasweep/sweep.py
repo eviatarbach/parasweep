@@ -4,7 +4,6 @@ from parasweep.namers import SequentialNamer
 from parasweep.dispatchers import PythonSubprocessDispatcher
 from parasweep.templates import PythonFormatTemplate
 
-import time
 import datetime
 import os
 
@@ -12,7 +11,7 @@ import os
 def run_sweep(command, configs, templates, sweep, sweep_id=None,
               namer=SequentialNamer(),
               dispatcher=PythonSubprocessDispatcher(),
-              template_engine=PythonFormatTemplate(), delay=0.0, serial=False,
+              template_engine=PythonFormatTemplate(), serial=False,
               wait=False, cleanup=False, verbose=True, overwrite=True,
               save_mapping=True):
     r"""
@@ -47,9 +46,6 @@ def run_sweep(command, configs, templates, sweep, sweep_id=None,
     template_engine : templates.Template class, optional
         A :class:`parasweep.templates.Template` class that specifies the
         template engine to use. By default, uses Python format strings.
-    delay : float, optional
-        How many seconds to delay between dispatching successive simulations.
-        0.0 by default.
     serial : bool, optional
         Whether to run simulations serially, i.e., to wait for each simulation
         to complete before executing the next one. Enabling this turns off
@@ -201,9 +197,8 @@ def run_sweep(command, configs, templates, sweep, sweep_id=None,
             print('Running simulation {} with parameters:'.format(sim_id))
             print('\n'.join('{}: {}'.format(key, param) for key, param
                             in param_set.items()))
+
         dispatcher.dispatch(command.format(sim_id=sim_id), serial)
-        if delay:
-            time.sleep(delay)
 
     if wait:
         dispatcher.wait_all()

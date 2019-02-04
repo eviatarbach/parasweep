@@ -129,19 +129,6 @@ class TestSweep(unittest.TestCase):
 
             os.remove('err_test.txt')
 
-    def test_delay(self):
-        with tempfile.NamedTemporaryFile('w') as template:
-            template.write('Hello {x}\n')
-            template.seek(0)
-
-            start_time = time.time()
-            run_sweep(' '.join([cat, '{sim_id}.txt']), ['{sim_id}.txt'],
-                      templates=[template.name],
-                      sweep=CartesianSweep({'x': [1, 2]}), delay=2,
-                      verbose=False, cleanup=True, save_mapping=False)
-
-            self.assertGreater(time.time() - start_time, 4)
-
     def test_serial(self):
         from parasweep.dispatchers import DRMAADispatcher
 
@@ -153,7 +140,7 @@ class TestSweep(unittest.TestCase):
             run_sweep(' '.join([sleep, str(2)]), ['{sim_id}.txt'],
                       templates=[template.name],
                       sweep=CartesianSweep({'x': [1, 2]}), serial=True,
-                      verbose=False, cleanup=True, save_mapping=False)
+                      verbose=False, save_mapping=False)
 
             self.assertGreater(time.time() - start_time, 4)
 
@@ -162,9 +149,12 @@ class TestSweep(unittest.TestCase):
                       templates=[template.name],
                       sweep=CartesianSweep({'x': [1, 2]}),
                       dispatcher=DRMAADispatcher(), serial=True, verbose=False,
-                      cleanup=True, save_mapping=False)
+                      save_mapping=False)
 
             self.assertGreater(time.time() - start_time, 4)
+
+        os.remove('0.txt')
+        os.remove('1.txt')
 
     def test_wait(self):
         with tempfile.NamedTemporaryFile('r') as out, \
@@ -175,9 +165,13 @@ class TestSweep(unittest.TestCase):
             run_sweep(' '.join([sleepcat, str(3), '{sim_id}.txt', out.name]),
                       ['{sim_id}.txt'], templates=[template.name],
                       sweep=CartesianSweep({'x': [1, 1, 1]}), wait=True,
-                      verbose=False, cleanup=True, save_mapping=False)
+                      verbose=False, save_mapping=False)
 
             self.assertEqual(out.read(), 'Hello 1\nHello 1\nHello 1\n')
+
+        os.remove('0.txt')
+        os.remove('1.txt')
+        os.remove('2.txt')
 
     def test_errors(self):
         with tempfile.NamedTemporaryFile('w') as template:
