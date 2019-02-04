@@ -15,6 +15,15 @@ class Template(ABC):
 
     @abstractmethod
     def load(self, paths):
+        """
+        Load configuration templates.
+
+        Parameters
+        ----------
+        paths : list
+            List of paths of configuration templates to load.
+
+        """
         pass
 
     @abstractmethod

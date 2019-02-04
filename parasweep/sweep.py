@@ -10,7 +10,7 @@ import os
 
 
 def run_sweep(command, configs, templates, sweep, sweep_id=None,
-              naming=SequentialNamer(),
+              namer=SequentialNamer(),
               dispatcher=PythonSubprocessDispatcher(),
               template_engine=PythonFormatTemplate(), delay=0.0, serial=False,
               wait=False, cleanup=False, verbose=True, overwrite=True,
@@ -38,7 +38,7 @@ def run_sweep(command, configs, templates, sweep, sweep_id=None,
     sweep_id : str, optional
         A name for the sweep. By default, the name is generated automatically
         from the date and time.
-    naming : namers.Namer instance, optional
+    namer : namers.Namer instance, optional
         A :class:`parasweep.namers.Namer` object that specifies how to assign
         simulation IDs. By default, assigns simulation IDs sequentially.
     dispatcher : dispatchers.Dispatcher instance, optional
@@ -174,18 +174,18 @@ def run_sweep(command, configs, templates, sweep, sweep_id=None,
 
     template_engine.load(paths=templates)
 
-    naming.start(length=sweep.sweep_length)
+    namer.start(length=sweep.sweep_length)
 
     sim_ids = []
     config_filenames = []
 
     dispatcher.initialize_session()
 
-    for sweep_params in sweep.elements():
-        sim_id = naming.next(sweep.keys, sweep_params.values())
+    for param_set in sweep.elements():
+        sim_id = namer.next(param_set)
         sim_ids.append(sim_id)
 
-        rendered = template_engine.render(sweep_params)
+        rendered = template_engine.render(param_set)
         for config_rendered, config_path in zip(rendered, configs):
             config_filename = config_path.format(sim_id=sim_id)
             config_filenames.append(config_filename)
@@ -200,7 +200,7 @@ def run_sweep(command, configs, templates, sweep, sweep_id=None,
         if verbose:
             print('Running simulation {} with parameters:'.format(sim_id))
             print('\n'.join('{}: {}'.format(key, param) for key, param
-                            in sweep_params.items()))
+                            in param_set.items()))
         dispatcher.dispatch(command.format(sim_id=sim_id), serial)
         if delay:
             time.sleep(delay)

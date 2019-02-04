@@ -23,13 +23,12 @@ class Namer(ABC):
         pass
 
     @abstractmethod
-    def next(self, keys, param_set):
+    def next(self, param_set):
         """Generate simulation ID for a given parameter set.
 
         Parameters
         ----------
-        keys : iterable
-        param_set : iterable
+        param_set : dict
 
         """
         pass
@@ -74,7 +73,7 @@ class SequentialNamer(Namer):
                           else 1)
         self.length = length
 
-    def next(self, keys, param_set):
+    def next(self, param_set):
         if self.count + 1 >= self.length + self.start_at:
             raise StopIteration
         self.count += 1
