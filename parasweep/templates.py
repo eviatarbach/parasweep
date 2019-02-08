@@ -7,9 +7,9 @@ class Template(ABC):
     """
     Abstract base class for template engines.
 
-    Subclasses should implement the `load` and `render` methods. Make sure to
-    implement errors for providing parameters not present in the template, and
-    for using parameters in the template that are not provided.
+    Subclasses should implement the ``load`` and ``render`` methods. Make sure
+    to implement errors for providing parameters not present in the template,
+    and for using parameters in the template that are not provided.
 
     """
 

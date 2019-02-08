@@ -9,6 +9,7 @@ Submodules
    parasweep.dispatchers
    parasweep.namers
    parasweep.sweep
+   parasweep.sweepers
    parasweep.templates
 
 Module contents

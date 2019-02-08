@@ -12,6 +12,7 @@ Welcome to parasweep's documentation!
 
    Basic information <readme>
    installation
+   examples
    Sweep reference <parasweep.sweep>
    Module reference <parasweep>
    contributing

@@ -7,7 +7,7 @@ class Namer(ABC):
     """
     Abstract class for assigning simulation IDs to simulation.
 
-    Only the `next` method has to be implemented.
+    Only the ``next`` method has to be implemented.
     """
 
     def start(self, length):
@@ -38,6 +38,14 @@ class SequentialNamer(Namer):
     """
     Name simulations with consecutive numbers and leading zeros.
 
+    Parameters
+    ----------
+    zfill : None or int, optional
+        If provided, sets the width to which the name string is to be
+        padded with zeros.
+    start_at : int, optional
+        Sets the integer to start at in the sequential naming.
+
     Examples
     --------
     >>> counter = SequentialNamer()
@@ -50,27 +58,20 @@ class SequentialNamer(Namer):
     """
 
     def __init__(self, zfill=None, start_at=0):
-        """
-        Initialize sequential naming object.
-
-        Parameters
-        ----------
-        zfill : None or int, optional
-            If provided, sets the width to which the name string is to be
-            padded with zeros.
-        start_at : int, optional
-            Sets the integer to start at in the sequential naming.
-
-        """
-        self.zfill = zfill
+        self.zfill_arg = zfill
         self.start_at = start_at
 
     def start(self, length):
         self.count = self.start_at - 1
-        if self.zfill is None:
+
+        # Need to have `zfill_arg` separate because otherwise state can persist
+        # across multiple evaluations of `run_sweep`
+        if self.zfill_arg is None:
             # Compute how many digits are needed to represent all the numbers
             self.zfill = (math.floor(math.log10(length - 1) + 1) if length != 1
                           else 1)
+        else:
+            self.zfill = self.zfill_arg
         self.length = length
 
     def generate_id(self, param_set):

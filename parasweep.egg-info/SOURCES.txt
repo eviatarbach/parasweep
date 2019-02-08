@@ -8,14 +8,17 @@ setup.py
 docs/Makefile
 docs/conf.py
 docs/contributing.rst
+docs/examples.rst
 docs/history.rst
 docs/index.rst
 docs/installation.rst
 docs/make.bat
+docs/modules.rst
 docs/parasweep.dispatchers.rst
 docs/parasweep.namers.rst
 docs/parasweep.rst
 docs/parasweep.sweep.rst
+docs/parasweep.sweepers.rst
 docs/parasweep.templates.rst
 docs/readme.rst
 docs/_build/html/_static/ajax-loader.gif

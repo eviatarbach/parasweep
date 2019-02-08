@@ -214,7 +214,6 @@ class TestSweep(unittest.TestCase):
 
             os.remove('sim_ids_test.nc')
 
-
     def test_parameter_sets(self):
         with tempfile.NamedTemporaryFile('r') as out, \
                 tempfile.NamedTemporaryFile('w') as template:
@@ -302,7 +301,6 @@ class TestSweep(unittest.TestCase):
 
             self.assertEqual(temp_stdout.getvalue(),
                              'Running simulation 0 with parameters:\nx: 1\n')
-
 
 
 class TestPythonTemplates(unittest.TestCase):

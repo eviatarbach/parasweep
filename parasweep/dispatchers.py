@@ -7,8 +7,8 @@ class Dispatcher(ABC):
     """
     Abstract base class for dispatchers.
 
-    Subclasses should implement the `initialize_session`, `dispatch`, and
-    `wait_all` methods.
+    Subclasses should implement the ``initialize_session``, ``dispatch``, and
+    ``wait_all`` methods.
 
     """
 
@@ -64,8 +64,8 @@ class DRMAADispatcher(Dispatcher):
         the job scheduler. Documentation for the different options is
         available in the Python drmaa package. Some options specific to each
         job scheduler, called the native specification, may have to be set
-        using the `job_template.nativeSpecification` attribute, the options for
-        which can be found in the job scheduler's DRMAA interface (e.g.,
+        using the ``job_template.nativeSpecification`` attribute, the options
+        for which can be found in the job scheduler's DRMAA interface (e.g.,
         slurm-drmaa for Slurm and pbs-drmaa for PBS).
 
     Examples
