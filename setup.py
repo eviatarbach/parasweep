@@ -39,6 +39,6 @@ setup(
     tests_require=test_requirements,
     extras_require={'DRMAA support': ['drmaa'], 'Mako templates': ['mako']},
     url='https://github.com/eviatarbach/parasweep',
-    version='2019.01',
+    version='2019.02.post1',
     zip_safe=False,
 )
