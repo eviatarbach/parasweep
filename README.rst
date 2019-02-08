@@ -9,33 +9,23 @@ parasweep
         :target: https://parasweep.readthedocs.io/en/latest/?badge=latest
         :alt: Documentation Status
 
-Utility for facilitating parallel parameter sweeps.
+parasweep is a free and open-source Python utility for facilitating parallel
+parameter sweeps with computational models. Instead of requiring parameters to
+be passed by command-line, which can be error-prone and time-consuming,
+parasweep leverages the model's existing configuration files using a template
+system, requiring minimal code changes. After the sweep values are specified,
+a parallel job is dispatched for each parameter set, with support for common
+high-performance computing job schedulers. Post-processing is facilitated by
+providing a mapping between the parameter sets and the simulations.
 
 * Free software: MIT license
 * Documentation: https://parasweep.readthedocs.io.
 
-
-Features
---------
-
-* Parameter sweep types:
-    * Sweeps using all possible combinations of the given parameter values (Cartesian product)
-    * Sweeps using specific parameter sets
-* Dispatch types:
-    * Python's `subprocess` (default)
-    * DRMAA to interface with HPC job schedulers
-* Template types:
-    * Python format strings (default)
-    * Mako templates for more powerful formatting
-
 Usage
 -----
 
-To use parasweep::
-
-    from parasweep import run_sweep
-
-See the documentation for `run_sweep` for full usage details.
+See the :doc:`examples` and the documentation for
+:func:`~parasweep.sweep.run_sweep` for full usage details.
 
 Dependencies
 ------------

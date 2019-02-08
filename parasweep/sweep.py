@@ -16,9 +16,6 @@ def run_sweep(command, configs, templates, sweep, namer=SequentialNamer(),
     r"""
     Run parameter sweeps.
 
-    This function runs the program with the Cartesian product of the parameter
-    ranges.
-
     Parameters
     ----------
     command : str
@@ -26,8 +23,9 @@ def run_sweep(command, configs, templates, sweep, namer=SequentialNamer(),
         simulation ID is to be inserted.
     configs : list
         List of paths indicating where the configuration files should be saved
-        after substitution of the parameters into the templates. Must be in the
-        same order as ``templates``.
+        after substitution of the parameters into the templates. Each must
+        include ``{sim_id}`` indicating where the simulation ID is to be
+        inserted. Must be in the same order as ``templates``.
     templates : list
         List of paths of templates to substitute parameters into. Must be in
         the same order as ``configs``.
