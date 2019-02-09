@@ -5,7 +5,7 @@ Some tests rely on drmaa, Mako, or xarray being installed.
 """
 from parasweep import run_sweep
 from parasweep import CartesianSweep, FilteredCartesianSweep, SetSweep
-from parasweep.namers import SequentialNamer
+from parasweep.namers import SequentialNamer, HashNamer
 
 import unittest
 import tempfile
@@ -369,15 +369,23 @@ class TestNamers(unittest.TestCase):
         counter = SequentialNamer()
         counter.start(length=11)
 
-        self.assertEqual(counter.generate_id({'key1': 'value1'}), '00')
-        self.assertEqual(counter.generate_id({'key2': 'value2'}), '01')
+        self.assertEqual(counter.generate_id({'key1': 'value1'}, ''), '00')
+        self.assertEqual(counter.generate_id({'key2': 'value2'}, ''), '01')
 
         counter = SequentialNamer(zfill=3, start_at=3)
         counter.start(length=2)
 
-        self.assertEqual(counter.generate_id({'key1': 'value1'}), '003')
+        self.assertEqual(counter.generate_id({'key1': 'value1'}, ''), '003')
 
-        counter.generate_id({'key2': 'value2'})
+        counter.generate_id({'key2': 'value2'}, '')
 
         with self.assertRaises(StopIteration):
-            counter.generate_id({'key3': 'key_value3'})
+            counter.generate_id({'key3': 'key_value3'}, '')
+
+    def test_hash(self):
+        counter = HashNamer()
+
+        self.assertEqual(counter.generate_id({'key1': 'value1'}, ''),
+                         'e0e20eedb3ddfe')
+        self.assertEqual(counter.generate_id({'key2': 'value2'}, ''),
+                         '431c49cfbec6af')

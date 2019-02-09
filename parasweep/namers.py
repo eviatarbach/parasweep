@@ -1,6 +1,7 @@
 """Namers for generating simulation IDs."""
 import math
 from abc import ABC, abstractmethod
+import json
 
 
 class Namer(ABC):
@@ -23,12 +24,15 @@ class Namer(ABC):
         pass
 
     @abstractmethod
-    def generate_id(self, param_set):
+    def generate_id(self, param_set, sweep_id):
         """Generate simulation ID for a given parameter set.
 
         Parameters
         ----------
         param_set : dict
+            The parameter set
+        sweep_id : str
+            The sweep ID
 
         """
         pass
@@ -50,9 +54,9 @@ class SequentialNamer(Namer):
     --------
     >>> counter = SequentialNamer()
     >>> counter.start(length=11)
-    >>> counter.generate_id({'key1': 'value1'})
+    >>> counter.generate_id({'key1': 'value1'}, '')
     '00'
-    >>> counter.generate_id({'key2': 'value2'})
+    >>> counter.generate_id({'key2': 'value2'}, '')
     '01'
 
     """
@@ -74,8 +78,31 @@ class SequentialNamer(Namer):
             self.zfill = self.zfill_arg
         self.length = length
 
-    def generate_id(self, param_set):
+    def generate_id(self, param_set, sweep_id):
         if self.count + 1 >= self.length + self.start_at:
             raise StopIteration
         self.count += 1
         return str(self.count).zfill(self.zfill)
+
+
+class HashNamer(Namer):
+    """
+    Name simulations using hashing.
+
+    Examples
+    --------
+    >>> namer = HashNamer()
+    >>> namer.generate_id({'key1': 'value1'}, '')
+    'e0e20eedb3ddfe'
+    >>> namer.generate_id({'key2': 'value2'}, '')
+    '431c49cfbec6af'
+
+    """
+    def generate_id(self, param_set, sweep_id):
+        from hashlib import blake2b
+
+        h = blake2b(digest_size=7)
+        h.update(bytes(json.dumps(param_set), 'utf-8'))
+        h.update(bytes(sweep_id, 'utf-8'))
+
+        return h.hexdigest()
