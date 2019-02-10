@@ -27,6 +27,7 @@ Dependencies
 * Python 3
 * xarray
 * numpy
+* scipy
 * Mako (optional)
 * drmaa-python (optional)
 

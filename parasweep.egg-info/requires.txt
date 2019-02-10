@@ -1,5 +1,6 @@
 xarray
 numpy
+scipy
 
 [DRMAA support]
 drmaa
