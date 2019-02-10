@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 """Main sweep functionality."""
+import datetime
+import os
+
 from parasweep.namers import SequentialNamer
 from parasweep.dispatchers import PythonSubprocessDispatcher
 from parasweep.templates import PythonFormatTemplate
-
-import datetime
-import os
 
 
 def run_sweep(command, configs, templates, sweep, namer=SequentialNamer(),

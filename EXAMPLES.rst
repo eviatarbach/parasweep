@@ -116,7 +116,7 @@ Instead of a Cartesian sweep, specific parameter sets can be used with
 
 **template.txt**::
 
-    Hello {x} {y} {z}\n
+    Hello {x}, {y}, {z}\n
 
 **Command**::
 
@@ -135,6 +135,41 @@ dictionary::
 
     >>> mapping
     {'0': {'x': 2, 'y': 8, 'z': 5}, '1': {'x': 1, 'y': -4, 'z': 9}}
+
+RandomSweep
+~~~~~~~~~~~
+
+There is also a random sweep, where parameters are drawn from independent
+random distributions.
+
+**template.txt**::
+
+    Hello {x}, {y}\n
+
+**Command**::
+
+    >>> import scipy.stats
+    >>> from parasweep import run_sweep, RandomSweep
+    >>> mapping = run_sweep(command='cat {sim_id}.txt',
+    ...                     configs=['{sim_id}.txt'],
+    ...                     templates=['template.txt'],
+    ...                     sweep=RandomSweep({'x': scipy.stats.norm(),
+    ...                                        'y': scipy.stats.uniform()},
+    ...                                       length=3),
+    ...                     verbose=False)
+    Hello 0.9533238364874957, 0.8197338171659898
+    Hello -1.966220661588362, 0.3213785864763252
+    Hello -0.057572896338656816, 0.17615488655036005
+
+Here, ``x`` is drawn from a standard normal distribution and ``y`` is uniform
+between 0 and 1.
+
+The parameter mapping is again a dictionary::
+
+    >>> mapping
+    {'0': {'x': 0.9533238364874957, 'y': 0.8197338171659898},
+     '1': {'x': -1.966220661588362, 'y': 0.3213785864763252},
+     '2': {'x': -0.057572896338656816, 'y': 0.17615488655036005}}
 
 Multiple configuration files
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -242,6 +277,7 @@ formatting templates, being able to insert code within the template:
 
 **Command**::
 
+    >>> from parasweep import run_sweep, CartesianSweep
     >>> from parasweep.templates import MakoTemplate
     >>> mapping = run_sweep(command='cat {sim_id}.txt',
     ...                     configs=['{sim_id}.txt'],

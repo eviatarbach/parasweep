@@ -85,6 +85,7 @@ class CartesianSweep(Sweep):
         to sweep over as values.
 
     """
+
     def __init__(self, sweep_params):
         self.keys = list(sweep_params.keys())
         self.values = list(sweep_params.values())
@@ -144,15 +145,16 @@ class FilteredCartesianSweep(Sweep):
         argument should be defined, or else an error will be raised.
 
     """
-    def __init__(self, sweep_params, filter_func):
-        self.keys = list(sweep_params.keys())
-        self.values = list(sweep_params.values())
 
-        product = itertools.product(*self.values)
+    def __init__(self, sweep_params, filter_func):
+        keys = list(sweep_params.keys())
+        values = list(sweep_params.values())
+
+        product = itertools.product(*values)
 
         # Here we cannot do lazy evaluation since we need the length of the
         # filtered elements.
-        product_dicts = [dict(zip(self.keys, element)) for element in product]
+        product_dicts = [dict(zip(keys, element)) for element in product]
         self.filtered = list(filter(lambda d: filter_func(**d), product_dicts))
 
     def __len__(self):
@@ -183,14 +185,63 @@ class SetSweep(Sweep):
         dictionaries.
 
     """
+
     def __init__(self, param_sets):
         self.parameter_sets = param_sets
-        self.keys = param_sets[0].keys()
 
     def __len__(self):
         return len(self.parameter_sets)
 
     def elements(self):
+        return self.parameter_sets
+
+    def mapping(self, sim_ids, sweep_id, save=True):
+        """
+        Return a dictionary which maps simulation IDs to parameter sets.
+
+        See :func:`parasweep.sweepers.Sweep.mapping` for argument information.
+        If ``save=True``, this dictionary will be saved as a JSON file with the
+        name ``sim_ids_{sweep_id}.json``.
+        """
+        return _sparse_mapping(self.parameter_sets, sim_ids, sweep_id, save)
+
+
+class RandomSweep(Sweep):
+    """
+    A random parameter sweep.
+
+    Each parameter is treated as an independent random variable with a given
+    distribution.
+
+    Parameters
+    ----------
+    sweep_params : dict
+        A dictionary containing the parameter names as keys and SciPy random
+        variables (i.e., instances of subclasses of
+        ``scipy.stats._distn_infrastructure.rv_generic``) as values.
+    length : int
+        The number of sets of random parameters to draw
+    random_state : numpy.random.RandomState instance, optional
+        If provided, will use the given random state in generating random
+        numbers. By default, it uses the global random state.
+
+    """
+
+    def __init__(self, sweep_params, length, random_state=None):
+        self.sweep_params = sweep_params
+        self.length = length
+        self.random_state = random_state
+
+    def __len__(self):
+        return self.length
+
+    def elements(self):
+        param_rvs = [rv.rvs(size=self.length, random_state=self.random_state)
+                     for rv in self.sweep_params.values()]
+        self.parameter_sets = [dict(param_set) for param_set in
+                               zip(*(zip([key]*self.length, rvs) for key, rvs
+                                     in zip(self.sweep_params.keys(),
+                                            param_rvs)))]
         return self.parameter_sets
 
     def mapping(self, sim_ids, sweep_id, save=True):

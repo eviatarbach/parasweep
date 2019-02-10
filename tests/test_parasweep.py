@@ -3,10 +3,6 @@ Test suite.
 
 Some tests rely on drmaa, Mako, or xarray being installed.
 """
-from parasweep import run_sweep
-from parasweep import CartesianSweep, FilteredCartesianSweep, SetSweep
-from parasweep.namers import SequentialNamer, HashNamer
-
 import unittest
 import tempfile
 import time
@@ -15,6 +11,11 @@ import os
 import json
 import contextlib
 import io
+
+from parasweep import run_sweep
+from parasweep import CartesianSweep, FilteredCartesianSweep, SetSweep, \
+                      RandomSweep
+from parasweep.namers import SequentialNamer, HashNamer
 
 # Use a Python "cat" and "sleep" command to make it more cross-platform
 cat = ' '.join(['python', os.path.join(os.path.dirname(__file__), 'cat')])
@@ -264,6 +265,35 @@ class TestSweep(unittest.TestCase):
                 self.assertEqual(mapping, json.load(json_file))
 
             os.remove('sim_ids_test2.json')
+
+    def test_random(self):
+        import scipy.stats
+        import numpy.random
+
+        with tempfile.NamedTemporaryFile('r') as out, \
+                tempfile.NamedTemporaryFile('w') as template:
+            template.write('Hello {x:.2f}, {y:.2f}\n')
+            template.seek(0)
+
+            sweep = RandomSweep({'x': scipy.stats.norm(),
+                                 'y': scipy.stats.uniform(loc=0, scale=3)},
+                                random_state=numpy.random.RandomState(30),
+                                length=3)
+            mapping = run_sweep(' '.join([cat, '{sim_id}.txt', out.name]),
+                                ['{sim_id}.txt'], templates=[template.name],
+                                sweep=sweep, verbose=False, cleanup=True,
+                                sweep_id='test3', save_mapping=True)
+
+            self.assertEqual(set(out.read().splitlines()),
+                             set(('Hello -1.26, 2.89\nHello 1.53, 1.04\n'
+                                  'Hello -0.97, 2.98').splitlines()))
+
+            self.assertTrue(os.path.isfile('sim_ids_test3.json'))
+
+            with open('sim_ids_test3.json', 'r') as json_file:
+                self.assertEqual(mapping, json.load(json_file))
+
+            os.remove('sim_ids_test3.json')
 
     def test_overwrite(self):
         with tempfile.NamedTemporaryFile('w') as template:
