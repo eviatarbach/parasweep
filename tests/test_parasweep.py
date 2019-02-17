@@ -416,6 +416,6 @@ class TestNamers(unittest.TestCase):
         counter = HashNamer()
 
         self.assertEqual(counter.generate_id({'key1': 'value1'}, ''),
-                         'e0e20eedb3ddfe')
+                         '31fc462e')
         self.assertEqual(counter.generate_id({'key2': 'value2'}, ''),
-                         '431c49cfbec6af')
+                         '9970c8f5')

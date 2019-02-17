@@ -89,20 +89,29 @@ class HashNamer(Namer):
     """
     Name simulations using hashing.
 
+    Parameters
+    ----------
+    hash_length : int, optional
+        How many hexadecimal numbers to truncate the hash to. 6 by default.
+
     Examples
     --------
     >>> namer = HashNamer()
     >>> namer.generate_id({'key1': 'value1'}, '')
-    'e0e20eedb3ddfe'
+    '31fc462e'
     >>> namer.generate_id({'key2': 'value2'}, '')
-    '431c49cfbec6af'
+    '9970c8f5'
 
     """
-    def generate_id(self, param_set, sweep_id):
-        from hashlib import blake2b
 
-        h = blake2b(digest_size=7)
+    def __init__(self, hash_length=8):
+        self.hash_length = hash_length
+
+    def generate_id(self, param_set, sweep_id):
+        from hashlib import sha1
+
+        h = sha1()
         h.update(bytes(json.dumps(param_set), 'utf-8'))
         h.update(bytes(sweep_id, 'utf-8'))
 
-        return h.hexdigest()
+        return h.hexdigest()[:self.hash_length]
