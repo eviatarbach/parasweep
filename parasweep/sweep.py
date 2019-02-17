@@ -4,12 +4,12 @@ import datetime
 import os
 
 from parasweep.namers import SequentialNamer
-from parasweep.dispatchers import PythonSubprocessDispatcher
+from parasweep.dispatchers import SubprocessDispatcher
 from parasweep.templates import PythonFormatTemplate
 
 
 def run_sweep(command, configs, templates, sweep, namer=SequentialNamer(),
-              dispatcher=PythonSubprocessDispatcher(),
+              dispatcher=SubprocessDispatcher(),
               template_engine=PythonFormatTemplate(), sweep_id=None,
               serial=False, wait=False, cleanup=False, verbose=True,
               overwrite=True, save_mapping=True):

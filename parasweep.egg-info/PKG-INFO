@@ -32,7 +32,7 @@ Description: =========
         Dependencies
         ------------
         
-        * Python 3
+        * Python 3.2+
         * xarray
         * numpy
         * scipy
@@ -71,6 +71,12 @@ Platform: UNKNOWN
 Classifier: Intended Audience :: Science/Research
 Classifier: License :: OSI Approved :: MIT License
 Classifier: Natural Language :: English
-Classifier: Programming Language :: Python :: 3
-Provides-Extra: DRMAA support
+Classifier: Programming Language :: Python :: 3.2
+Classifier: Programming Language :: Python :: 3.3
+Classifier: Programming Language :: Python :: 3.4
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Requires-Python: >3.2
 Provides-Extra: Mako templates
+Provides-Extra: DRMAA support

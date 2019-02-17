@@ -24,7 +24,7 @@ providing a mapping between the parameter sets and the simulations.
 Dependencies
 ------------
 
-* Python 3
+* Python 3.2+
 * xarray
 * numpy
 * scipy

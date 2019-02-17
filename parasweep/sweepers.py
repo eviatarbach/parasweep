@@ -89,7 +89,6 @@ class CartesianSweep(Sweep):
     def __init__(self, sweep_params):
         self.keys = list(sweep_params.keys())
         self.values = list(sweep_params.values())
-        self.filter = filter
 
         self.lengths = [len(value) for value in self.values]
 

@@ -1,6 +1,8 @@
 """Dispatchers for running parallel jobs."""
 import subprocess
+import multiprocessing
 from abc import ABC, abstractmethod
+from concurrent.futures import ThreadPoolExecutor
 
 
 class Dispatcher(ABC):
@@ -38,19 +40,37 @@ class Dispatcher(ABC):
         pass
 
 
-class PythonSubprocessDispatcher(Dispatcher):
+class SubprocessDispatcher(Dispatcher):
+    """
+    Dispatcher using subprocesses.
+
+    Parameters
+    ----------
+    max_procs : int, optional
+        The maximum number of processes to run simultaneously. By default, uses
+        the number of processors on the machine.
+
+    """
+
+    def __init__(self, max_procs=None):
+        self.max_procs = (multiprocessing.cpu_count() if max_procs is None
+                          else max_procs)
+
     def initialize_session(self):
         self.processes = []
 
+        self.pool = ThreadPoolExecutor(max_workers=self.max_procs)
+
     def dispatch(self, command, wait):
-        process = subprocess.Popen(command, shell=True)
+        process = self.pool.submit(subprocess.Popen, command, shell=True)
         self.processes.append(process)
+
         if wait:
-            process.wait()
+            process.result().wait()
 
     def wait_all(self):
         for process in self.processes:
-            process.wait()
+            process.result().wait()
 
 
 class DRMAADispatcher(Dispatcher):
