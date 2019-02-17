@@ -78,5 +78,5 @@ Classifier: Programming Language :: Python :: 3.5
 Classifier: Programming Language :: Python :: 3.6
 Classifier: Programming Language :: Python :: 3.7
 Requires-Python: >3.2
-Provides-Extra: Mako templates
 Provides-Extra: DRMAA support
+Provides-Extra: Mako templates

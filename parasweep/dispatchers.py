@@ -48,7 +48,8 @@ class SubprocessDispatcher(Dispatcher):
     ----------
     max_procs : int, optional
         The maximum number of processes to run simultaneously. By default, uses
-        the number of processors on the machine.
+        the number of processors on the machine (this is a good choice for
+        CPU-bound work).
 
     """
 
@@ -62,15 +63,16 @@ class SubprocessDispatcher(Dispatcher):
         self.pool = ThreadPoolExecutor(max_workers=self.max_procs)
 
     def dispatch(self, command, wait):
-        process = self.pool.submit(subprocess.Popen, command, shell=True)
+        process = self.pool.submit(lambda: subprocess.Popen(command,
+                                                            shell=True).wait())
         self.processes.append(process)
 
         if wait:
-            process.result().wait()
+            process.result()
 
     def wait_all(self):
         for process in self.processes:
-            process.result().wait()
+            process.result()
 
 
 class DRMAADispatcher(Dispatcher):
