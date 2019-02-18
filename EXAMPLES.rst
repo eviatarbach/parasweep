@@ -186,6 +186,7 @@ Multiple configuration files and their corresponding templates can be used:
 
 **Command**::
 
+    >>> from parasweep import run_sweep, CartesianSweep
     >>> mapping = run_sweep(command='cat {sim_id}_1.txt {sim_id}_2.txt',
     ...                     configs=['{sim_id}_1.txt', '{sim_id}_2.txt'],
     ...                     templates=['template1.txt', 'template2.txt'],
@@ -199,8 +200,53 @@ Multiple configuration files and their corresponding templates can be used:
     Hello 3,
     hello again 4
 
+Sweep IDs
+~~~~~~~~~
+
+Sweep IDs are used to name the mapping structure if it is saved to disk, and
+also in assigning simulation IDs in some cases. If it is not provided
+explicitly it is generated based on the current time.
+
+**template.txt**::
+
+    Hello {x},\n
+
+**Command**::
+
+    >>> import os
+    >>> from parasweep import run_sweep, CartesianSweep
+    >>> mapping = run_sweep(command='cat {sim_id}.txt',
+    ...                     configs=['{sim_id}.txt'],
+    ...                     templates=['template.txt'],
+    ...                     sweep=CartesianSweep({'x': [1, 2, 3]}),
+    ...                     verbose=False, sweep_id='test_sweep')
+    Hello 1
+    Hello 2
+    Hello 3
+    >>> os.path.exists('sim_ids_test_sweep.nc')
+    True
+
+Dispatchers
+-----------
+
+Number of processes
+~~~~~~~~~~~~~~~~~~~
+
+By default, the maximum number of processes run simultaneously with
+``SubprocessDispatcher`` is equal to the number of processors on the machine.
+We can choose a custom number, however.
+
+**Command**::
+
+    >>> from parasweep import run_sweep, CartesianSweep
+    >>> from parasweep.dispatchers import SubprocessDispatcher
+    >>> dispatcher = SubprocessDispatcher(max_procs=2)
+
+This dispatcher should then be passed to ``run_sweep`` as the ``dispatcher``
+argument.
+
 DRMAA
------
+~~~~~
 
 Instead of dispatching simulations with Python's ``subprocess`` module, we can
 use the Distributed Resource Management Application API (DRMAA) to interface
@@ -240,8 +286,8 @@ We set the command to print the contents of the configuration file to
    ...     print(err_file.read())
    Hello 1
 
-Advanced template usage
------------------------
+Template engines
+----------------
 
 Formatting
 ~~~~~~~~~~
@@ -287,3 +333,35 @@ formatting templates, being able to insert code within the template:
     Hello 10
     Hello 20
     Hello 30
+
+Naming
+------
+
+HashNamer
+~~~~~~~~~
+
+In the case where many parameter sweeps are run on the same model, it may be
+helpful to use ``HashNamer`` to avoid collision of the output files.
+
+**template.txt**::
+
+    Hello {x}\n
+
+**Command**::
+
+    >>> from parasweep import run_sweep, CartesianSweep
+    >>> from parasweep.namers import HashNamer
+    >>> mapping = run_sweep(command='echo {sim_id}',
+    ...                     configs=['{sim_id}.txt'],
+    ...                     templates=['template.txt'],
+    ...                     sweep=CartesianSweep({'x': [1, 2, 3]}),
+    ...                     namer=HashNamer(), verbose=False)
+    16bcb7a1
+    7e3245fa
+    1780e76b
+
+.. Note:: The hash for each parameter set is generated based on the parameter
+   set itself as well as the sweep ID. Thus if the sweep IDs are different,
+   hashes will vary between sweeps even if the parameters sets are identical.
+   If ``sweep_id`` is not provided as an argument to ``run_sweep`` it will be
+   generated based on the current time.
