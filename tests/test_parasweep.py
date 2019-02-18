@@ -16,6 +16,7 @@ from parasweep import run_sweep
 from parasweep import CartesianSweep, FilteredCartesianSweep, SetSweep, \
                       RandomSweep
 from parasweep.namers import SequentialNamer, HashNamer
+from parasweep.dispatchers import SubprocessDispatcher
 
 # Use a Python "cat" and "sleep" command to make it more cross-platform
 cat = ' '.join(['python', os.path.join(os.path.dirname(__file__), 'cat')])
@@ -331,6 +332,22 @@ class TestSweep(unittest.TestCase):
 
             self.assertEqual(temp_stdout.getvalue(),
                              'Running simulation 0 with parameters:\nx: 1\n')
+
+    def test_max_procs(self):
+        with tempfile.NamedTemporaryFile('w') as template:
+            template.write('Hello {x}\n')
+            template.seek(0)
+
+            dispatcher = SubprocessDispatcher(max_procs=1)
+
+            start_time = time.time()
+            run_sweep(' '.join([sleep, str(2)]), ['{sim_id}.txt'],
+                      templates=[template.name],
+                      sweep=CartesianSweep({'x': [1, 2]}),
+                      dispatcher=dispatcher, verbose=False, save_mapping=False,
+                      cleanup=True)
+
+            self.assertGreater(time.time() - start_time, 4)
 
 
 class TestPythonTemplates(unittest.TestCase):
