@@ -101,15 +101,14 @@ def run_sweep(command, configs, templates, sweep, namer=SequentialNamer(),
             config_filenames.append(config_filename)
             if not overwrite:
                 if os.path.isfile(config_filename):
-                    raise FileExistsError('{} exists, set `overwrite` '
-                                          'to True to '
-                                          'overwrite.'.format(config_filename))
+                    raise FileExistsError(f'{config_filename} exists, set '
+                                          '`overwrite` to True to overwrite.')
             with open(config_filename, 'wb') as config_file:
                 config_file.write(config_rendered.encode('utf-8', 'replace'))
 
         if verbose:
-            print('Running simulation {} with parameters:'.format(sim_id))
-            print('\n'.join('{}: {}'.format(key, param) for key, param
+            print(f'Running simulation {sim_id} with parameters:')
+            print('\n'.join(f'{key}: {param}' for key, param
                             in param_set.items()))
 
         dispatcher.dispatch(command.format(sim_id=sim_id), serial)

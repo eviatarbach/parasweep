@@ -1,4 +1,4 @@
-xarray
+xarray>=0.9
 numpy
 scipy
 

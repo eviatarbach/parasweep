@@ -15,7 +15,7 @@ def _sparse_mapping(parameter_sets, sim_ids, sweep_id, save):
     sim_id_mapping = dict(zip(sim_ids, parameter_sets))
 
     if save:
-        sim_ids_filename = 'sim_ids_{}.json'.format(sweep_id)
+        sim_ids_filename = f'sim_ids_{sweep_id}.json'
 
         with open(sim_ids_filename, 'w') as sim_ids_file:
             json.dump(sim_id_mapping, sim_ids_file)
@@ -121,7 +121,7 @@ class CartesianSweep(Sweep):
                                          name='sim_id')
 
         if save:
-            sim_ids_filename = 'sim_ids_{}.nc'.format(sweep_id)
+            sim_ids_filename = f'sim_ids_{sweep_id}.nc'
             sim_ids_array.to_netcdf(sim_ids_filename)
 
         return sim_ids_array

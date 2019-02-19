@@ -11,7 +11,7 @@ with open('README.rst') as readme_file:
 with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
-requirements = ['xarray', 'numpy', 'scipy']
+requirements = ['xarray>=0.9', 'numpy', 'scipy']
 
 setup_requirements = []
 
@@ -24,10 +24,6 @@ setup(
         'Intended Audience :: Science/Research',
         'License :: OSI Approved :: MIT License',
         'Natural Language :: English',
-        'Programming Language :: Python :: 3.2',
-        'Programming Language :: Python :: 3.3',
-        'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7'
     ],
@@ -40,7 +36,7 @@ setup(
     name='parasweep',
     packages=find_packages(include=['parasweep']),
     setup_requires=setup_requirements,
-    python_requires='>3.2',
+    python_requires='>=3.6',
     test_suite='tests',
     tests_require=test_requirements,
     extras_require={'DRMAA support': ['drmaa'], 'Mako templates': ['mako']},
