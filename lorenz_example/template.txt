@@ -1,0 +1,5 @@
+&params
+beta = {beta},
+sigma = {sigma},
+rho = {rho}
+/
