@@ -4,7 +4,7 @@
 
 __author__ = """Eviatar Bach"""
 __email__ = 'eviatarbach@protonmail.com'
-__version__ = '2019.02.post1'
+__version__ = '2019.02.2'
 
 from parasweep.sweep import run_sweep
 from parasweep.sweepers import CartesianSweep, FilteredCartesianSweep, \

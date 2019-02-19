@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: parasweep
-Version: 2019.2.post1
+Version: 2019.2.2
 Summary: Utility for facilitating parallel parameter sweeps.
 Home-page: https://github.com/eviatarbach/parasweep
 Author: Eviatar Bach
@@ -54,17 +54,26 @@ Description: =========
         History
         =======
         
+        2019.02.2 (2019-02-18)
+        --------------------
+        
+        * Adding process limit for subprocess dispatching
+        * Adding RandomSweep sweep type
+        * Adding HashNamer naming
+        * Clarifying version dependencies
+        * More examples
+        
         2019.02 (2019-02-07)
         --------------------
         
-        * Separating sweep logic into a separate module.
-        * Adding FilteredCartesianSweep sweep type.
-        * Numerous documentation changes, including many more examples.
+        * Separating sweep logic into a separate module
+        * Adding FilteredCartesianSweep sweep type
+        * Numerous documentation changes, including many more examples
         
         2019.01 (2019-01-21)
         --------------------
         
-        * First release on PyPI.
+        * First release on PyPI
         
 Keywords: parasweep
 Platform: UNKNOWN
@@ -74,5 +83,5 @@ Classifier: Natural Language :: English
 Classifier: Programming Language :: Python :: 3.6
 Classifier: Programming Language :: Python :: 3.7
 Requires-Python: >=3.6
-Provides-Extra: Mako templates
 Provides-Extra: DRMAA support
+Provides-Extra: Mako templates
