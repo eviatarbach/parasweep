@@ -19,7 +19,8 @@ high-performance computing job schedulers. Post-processing is facilitated by
 providing a mapping between the parameter sets and the simulations.
 
 * Free software: MIT license
-* Documentation: http://www.parasweep.io.
+* Documentation: http://www.parasweep.io
+* Code: https://github.com/eviatarbach/parasweep
 
 Dependencies
 ------------
