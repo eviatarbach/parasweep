@@ -3,7 +3,7 @@ History
 =======
 
 2019.02.2 (2019-02-18)
---------------------
+----------------------
 
 * Adding process limit for subprocess dispatching
 * Adding RandomSweep sweep type
