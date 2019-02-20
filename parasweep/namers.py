@@ -115,3 +115,29 @@ class HashNamer(Namer):
         h.update(bytes(sweep_id, 'utf-8'))
 
         return h.hexdigest()[:self.hash_length]
+
+
+class SetNamer(Namer):
+    """
+    Name simulations consecutively with a provided iterable.
+
+    Parameters
+    ----------
+    names : Iterator[str]
+        The sequence of names to assign to consecutive simulations.
+
+    Examples
+    --------
+    >>> namer = SetNamer(['name1', 'name2'])
+    >>> namer.generate_id({'key1': 'value1'}, '')
+    'name1'
+    >>> namer.generate_id({'key2': 'value2'}, '')
+    'name2'
+
+    """
+
+    def __init__(self, names):
+        self.names = iter(names)
+
+    def generate_id(self, param_set, sweep_id):
+        return next(self.names)

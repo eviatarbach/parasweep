@@ -15,7 +15,7 @@ import io
 from parasweep import run_sweep
 from parasweep import CartesianSweep, FilteredCartesianSweep, SetSweep, \
                       RandomSweep
-from parasweep.namers import SequentialNamer, HashNamer
+from parasweep.namers import SequentialNamer, HashNamer, SetNamer
 from parasweep.dispatchers import SubprocessDispatcher
 
 # Use a Python "cat" and "sleep" command to make it more cross-platform
@@ -436,3 +436,11 @@ class TestNamers(unittest.TestCase):
                          '31fc462e')
         self.assertEqual(counter.generate_id({'key2': 'value2'}, ''),
                          '9970c8f5')
+
+    def test_set(self):
+        counter = SetNamer(['name1', 'name2'])
+
+        self.assertEqual(counter.generate_id({'key1': 'value1'}, ''),
+                         'name1')
+        self.assertEqual(counter.generate_id({'key2': 'value2'}, ''),
+                         'name2')
