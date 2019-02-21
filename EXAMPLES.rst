@@ -1,7 +1,6 @@
 ========
 Examples
 ========
-.. highlight:: python
 
 As a toy "simulation", in these examples we make use of the standard Unix
 command ``cat``, which concatenates the files given to it as arguments and
