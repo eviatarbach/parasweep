@@ -33,6 +33,7 @@ docs/_build/html/_static/plus.png
 docs/_build/html/_static/up-pressed.png
 docs/_build/html/_static/up.png
 parasweep/__init__.py
+parasweep/_annotation_types.py
 parasweep/dispatchers.py
 parasweep/namers.py
 parasweep/sweep.py

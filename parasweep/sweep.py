@@ -2,17 +2,23 @@
 """Main sweep functionality."""
 import datetime
 import os
+from typing import Optional, Collection, Any
 
-from parasweep.namers import SequentialNamer
-from parasweep.dispatchers import SubprocessDispatcher
-from parasweep.templates import PythonFormatTemplate
+from parasweep.sweepers import Sweep
+from parasweep.namers import Namer, SequentialNamer
+from parasweep.dispatchers import Dispatcher, SubprocessDispatcher
+from parasweep.templates import TemplateEngine, PythonFormatTemplate
 
 
-def run_sweep(command, configs, templates, sweep, namer=SequentialNamer(),
-              dispatcher=SubprocessDispatcher(),
-              template_engine=PythonFormatTemplate(), sweep_id=None,
-              serial=False, wait=False, cleanup=False, verbose=True,
-              overwrite=True, save_mapping=True):
+def run_sweep(command: str, configs: Collection[str],
+              templates: Collection[str], sweep: Sweep,
+              namer: Namer = SequentialNamer(),
+              dispatcher: Dispatcher = SubprocessDispatcher(),
+              template_engine: TemplateEngine = PythonFormatTemplate(),
+              sweep_id: Optional[str] = None, serial: bool = False,
+              wait: bool = False, cleanup: bool = False, verbose: bool = True,
+              overwrite: bool = True,
+              save_mapping: bool = True) -> Optional[Any]:
     r"""
     Run parameter sweeps.
 
@@ -38,8 +44,8 @@ def run_sweep(command, configs, templates, sweep, namer=SequentialNamer(),
     dispatcher : dispatchers.Dispatcher instance, optional
         A :class:`parasweep.dispatchers.Dispatcher` object that specifies how
         to run the jobs. By default, uses Python's ``subprocess`` module.
-    template_engine : templates.Template instance, optional
-        A :class:`parasweep.templates.Template` object that specifies the
+    template_engine : templates.TemplateEngine instance, optional
+        A :class:`parasweep.templates.TemplateEngine` object that specifies the
         template engine to use. By default, uses Python format strings.
     sweep_id : str, optional
         A name for the sweep. By default, the name is generated automatically

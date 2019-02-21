@@ -2,7 +2,8 @@
 import subprocess
 import multiprocessing
 from abc import ABC, abstractmethod
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, Future
+from typing import Optional, List
 
 
 class Dispatcher(ABC):
@@ -15,12 +16,12 @@ class Dispatcher(ABC):
     """
 
     @abstractmethod
-    def initialize_session(self):
+    def initialize_session(self) -> None:
         """Must be called before dispatching jobs."""
         pass
 
     @abstractmethod
-    def dispatch(self, command, wait):
+    def dispatch(self, command: str, wait: bool) -> None:
         """
         Dispatch a command using the dispatcher.
 
@@ -35,7 +36,7 @@ class Dispatcher(ABC):
         pass
 
     @abstractmethod
-    def wait_all(self):
+    def wait_all(self) -> None:
         """Wait for the running/scheduled processes to finish, then return."""
         pass
 
@@ -53,16 +54,16 @@ class SubprocessDispatcher(Dispatcher):
 
     """
 
-    def __init__(self, max_procs=None):
+    def __init__(self, max_procs: Optional[int] = None):
         self.max_procs = (multiprocessing.cpu_count() if max_procs is None
                           else max_procs)
 
-    def initialize_session(self):
-        self.processes = []
+    def initialize_session(self) -> None:
+        self.processes = []  # type: List[Future[int]]
 
         self.pool = ThreadPoolExecutor(max_workers=self.max_procs)
 
-    def dispatch(self, command, wait):
+    def dispatch(self, command: str, wait: bool) -> None:
         process = self.pool.submit(lambda: subprocess.Popen(command,
                                                             shell=True).wait())
         self.processes.append(process)
@@ -70,7 +71,7 @@ class SubprocessDispatcher(Dispatcher):
         if wait:
             process.result()
 
-    def wait_all(self):
+    def wait_all(self) -> None:
         for process in self.processes:
             process.result()
 
@@ -97,9 +98,10 @@ class DRMAADispatcher(Dispatcher):
     >>> dispatcher = DRMAADispatcher(jt)
 
     """
-    session = None
+    import drmaa
+    session = None  # type: drmaa.Session
 
-    def __init__(self, job_template=None):
+    def __init__(self, job_template: Optional[drmaa.JobTemplate] = None):
         if job_template is None:
             import drmaa
 
@@ -107,7 +109,7 @@ class DRMAADispatcher(Dispatcher):
         else:
             self.job_template = job_template
 
-    def initialize_session(self):
+    def initialize_session(self) -> None:
         # Ensure there is only one active DRMAA session, otherwise it raises
         # an error
         if DRMAADispatcher.session is None:
@@ -119,9 +121,9 @@ class DRMAADispatcher(Dispatcher):
         else:
             self.session = DRMAADispatcher.session
 
-        self.jobids = []
+        self.jobids = []  # type: List[str]
 
-    def dispatch(self, command, wait):
+    def dispatch(self, command: str, wait: bool) -> None:
         self.job_template.remoteCommand = command
 
         jobid = self.session.runJob(self.job_template)
@@ -129,5 +131,5 @@ class DRMAADispatcher(Dispatcher):
         if wait:
             self.session.wait(jobid)
 
-    def wait_all(self):
+    def wait_all(self) -> None:
         self.session.synchronize(self.jobids)

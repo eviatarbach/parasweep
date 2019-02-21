@@ -1,9 +1,12 @@
 """Template engines for generating configuration files."""
 from abc import ABC, abstractmethod
 from string import Formatter
+from typing import Collection, List, Set
+
+from parasweep._annotation_types import ParameterSet
 
 
-class Template(ABC):
+class TemplateEngine(ABC):
     """
     Abstract base class for template engines.
 
@@ -14,7 +17,7 @@ class Template(ABC):
     """
 
     @abstractmethod
-    def load(self, paths):
+    def load(self, paths: Collection[str]) -> None:
         """
         Load configuration templates.
 
@@ -27,30 +30,30 @@ class Template(ABC):
         pass
 
     @abstractmethod
-    def render(self, params):
+    def render(self, param_set: ParameterSet) -> List[str]:
         """
-        Render a configuration file with the template engine.
+        Render configuration files with the template engine.
 
         Parameters
         ----------
-        params : dict
+        param_set : dict
             Dictionary with parameters and their values.
 
         """
         pass
 
 
-class PythonFormatTemplate(Template):
+class PythonFormatTemplate(TemplateEngine):
     """Template engine using Python's string formatting."""
 
-    def load(self, paths):
-        self.templates = []
+    def load(self, paths: Collection[str]) -> None:
+        self.templates = []  # type: List[str]
         for path in paths:
             with open(path, 'r') as template_file:
                 self.templates.append(template_file.read())
 
-    def render(self, params):
-        keys = params.keys()
+    def render(self, param_set: ParameterSet) -> List[str]:
+        keys = param_set.keys()
         unused_names = set(keys)
         rendered = []
         for template in self.templates:
@@ -58,7 +61,7 @@ class PythonFormatTemplate(Template):
                                 Formatter().parse(template) if elem[1]])
             unused_names -= config_names
             try:
-                rendered.append(template.format(**params))
+                rendered.append(template.format(**param_set))
             except KeyError as key:
                 raise NameError(f'The name {key} is used in the template but '
                                 'not provided.')
@@ -68,7 +71,7 @@ class PythonFormatTemplate(Template):
         return rendered
 
 
-def _mako_template_names(template):
+def _mako_template_names(template: str) -> Set[str]:
     """
     Return all the used identifiers in the Mako template.
 
@@ -91,26 +94,26 @@ def _mako_template_names(template):
     return identifiers.undeclared
 
 
-class MakoTemplate(Template):
+class MakoTemplate(TemplateEngine):
     """Template engine using Mako."""
 
-    def load(self, paths):
+    def load(self, paths: Collection[str]) -> None:
         from mako.template import Template
 
-        self.templates = []
+        self.templates = []  # type: List[Template]
         for path in paths:
             self.templates.append(Template(filename=path,
                                            input_encoding='utf-8',
                                            strict_undefined=True))
 
-    def render(self, params):
-        keys = params.keys()
+    def render(self, param_set: ParameterSet) -> List[str]:
+        keys = param_set.keys()
         unused_names = set(keys)
         rendered = []
         for template in self.templates:
             config_names = _mako_template_names(template.source)
             unused_names -= config_names
-            rendered.append(template.render_unicode(**params))
+            rendered.append(template.render_unicode(**param_set))
         if unused_names:
             raise NameError(f'The names {unused_names} are not used in the '
                             'template.')

@@ -2,6 +2,9 @@
 import math
 from abc import ABC, abstractmethod
 import json
+from typing import Optional, Iterable
+
+from parasweep._annotation_types import ParameterSet
 
 
 class Namer(ABC):
@@ -11,7 +14,7 @@ class Namer(ABC):
     Only the ``next`` method has to be implemented.
     """
 
-    def start(self, length):
+    def start(self, length: int) -> None:
         """
         Initialize naming.
 
@@ -24,7 +27,7 @@ class Namer(ABC):
         pass
 
     @abstractmethod
-    def generate_id(self, param_set, sweep_id):
+    def generate_id(self, param_set: ParameterSet, sweep_id: str) -> str:
         """Generate simulation ID for a given parameter set.
 
         Parameters
@@ -61,11 +64,11 @@ class SequentialNamer(Namer):
 
     """
 
-    def __init__(self, zfill=None, start_at=0):
+    def __init__(self, zfill: Optional[int] = None, start_at: int = 0):
         self.zfill_arg = zfill
         self.start_at = start_at
 
-    def start(self, length):
+    def start(self, length: int) -> None:
         self.count = self.start_at - 1
 
         # Need to have `zfill_arg` separate because otherwise state can persist
@@ -78,7 +81,7 @@ class SequentialNamer(Namer):
             self.zfill = self.zfill_arg
         self.length = length
 
-    def generate_id(self, param_set, sweep_id):
+    def generate_id(self, param_set: ParameterSet, sweep_id: str) -> str:
         if self.count + 1 >= self.length + self.start_at:
             raise StopIteration
         self.count += 1
@@ -104,10 +107,10 @@ class HashNamer(Namer):
 
     """
 
-    def __init__(self, hash_length=8):
+    def __init__(self, hash_length: int = 8):
         self.hash_length = hash_length
 
-    def generate_id(self, param_set, sweep_id):
+    def generate_id(self, param_set: ParameterSet, sweep_id: str) -> str:
         from hashlib import sha1
 
         h = sha1()
@@ -123,7 +126,7 @@ class SetNamer(Namer):
 
     Parameters
     ----------
-    names : Iterator[str]
+    names : Iterable[str]
         The sequence of names to assign to consecutive simulations.
 
     Examples
@@ -136,8 +139,8 @@ class SetNamer(Namer):
 
     """
 
-    def __init__(self, names):
+    def __init__(self, names: Iterable[str]):
         self.names = iter(names)
 
-    def generate_id(self, param_set, sweep_id):
+    def generate_id(self, param_set: ParameterSet, sweep_id: str) -> str:
         return next(self.names)

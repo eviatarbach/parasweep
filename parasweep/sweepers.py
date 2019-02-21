@@ -3,16 +3,25 @@ import itertools
 import operator
 from functools import reduce
 import json
+from typing import Dict, Iterable, Callable, Collection, Any, Optional, List
+
+import xarray
+import numpy
+from numpy.random import RandomState
+
+from parasweep._annotation_types import ParameterValue, ParameterSet
 
 
-def _sparse_mapping(parameter_sets, sim_ids, sweep_id, save):
+def _sparse_mapping(param_sets: Iterable[ParameterSet],
+                    sim_ids: Collection[str], sweep_id: str,
+                    save: bool) -> Dict[str, ParameterSet]:
     """
     Mapping function for sparse sweeps (not a full `n`-dimensional array).
 
     Returns a dictionary mapping simulation IDs to the parameter set used for
     that simulation.
     """
-    sim_id_mapping = dict(zip(sim_ids, parameter_sets))
+    sim_id_mapping = dict(zip(sim_ids, param_sets))
 
     if save:
         sim_ids_filename = f'sim_ids_{sweep_id}.json'
@@ -33,16 +42,16 @@ class Sweep(ABC):
     """
 
     @abstractmethod
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any):
         pass
 
     @abstractmethod
-    def __len__(self):
+    def __len__(self) -> int:
         """Return the number of elements of the sweep."""
         pass
 
     @abstractmethod
-    def elements(self):
+    def elements(self) -> Iterable[ParameterSet]:
         """
         Return the elements of the sweep.
 
@@ -51,7 +60,8 @@ class Sweep(ABC):
         pass
 
     @abstractmethod
-    def mapping(self, sim_ids, sweep_id, save=True):
+    def mapping(self, sim_ids: Collection[str], sweep_id: str,
+                save: bool = True) -> Optional[Any]:
         """
         Return a mapping between the simulation IDs and the parameter sets.
 
@@ -86,21 +96,22 @@ class CartesianSweep(Sweep):
 
     """
 
-    def __init__(self, sweep_params):
+    def __init__(self, sweep_params: Dict[str, Collection[ParameterValue]]):
         self.keys = list(sweep_params.keys())
         self.values = list(sweep_params.values())
 
         self.lengths = [len(value) for value in self.values]
 
-    def __len__(self):
+    def __len__(self) -> int:
         return reduce(operator.mul, self.lengths, 1)
 
-    def elements(self):
+    def elements(self) -> Iterable[ParameterSet]:
         product = itertools.product(*self.values)
 
         return (dict(zip(self.keys, element)) for element in product)
 
-    def mapping(self, sim_ids, sweep_id, save=True):
+    def mapping(self, sim_ids: Collection[str], sweep_id: str,
+                save: int = True) -> Optional[xarray.DataArray]:
         """
         Return a labelled array which maps parameters to simulation IDs.
 
@@ -112,9 +123,6 @@ class CartesianSweep(Sweep):
         name ``sim_ids_{sweep_id}.nc``.
 
         """
-        import xarray
-        import numpy
-
         sim_ids_array = xarray.DataArray(numpy.reshape(numpy.array(sim_ids),
                                                        self.lengths),
                                          coords=self.values, dims=self.keys,
@@ -145,7 +153,8 @@ class FilteredCartesianSweep(Sweep):
 
     """
 
-    def __init__(self, sweep_params, filter_func):
+    def __init__(self, sweep_params: Dict[str, Collection[ParameterValue]],
+                 filter_func: Callable[..., bool]):
         keys = list(sweep_params.keys())
         values = list(sweep_params.values())
 
@@ -156,13 +165,14 @@ class FilteredCartesianSweep(Sweep):
         product_dicts = [dict(zip(keys, element)) for element in product]
         self.filtered = list(filter(lambda d: filter_func(**d), product_dicts))
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.filtered)
 
-    def elements(self):
+    def elements(self) -> List[ParameterSet]:
         return self.filtered
 
-    def mapping(self, sim_ids, sweep_id, save=True):
+    def mapping(self, sim_ids: Collection[str], sweep_id: str,
+                save: bool = True) -> Dict[str, ParameterSet]:
         """
         Return a dictionary which maps simulation IDs to parameter sets.
 
@@ -185,16 +195,17 @@ class SetSweep(Sweep):
 
     """
 
-    def __init__(self, param_sets):
-        self.parameter_sets = param_sets
+    def __init__(self, param_sets: Collection[ParameterSet]):
+        self.param_sets = param_sets
 
-    def __len__(self):
-        return len(self.parameter_sets)
+    def __len__(self) -> int:
+        return len(self.param_sets)
 
-    def elements(self):
-        return self.parameter_sets
+    def elements(self) -> Collection[ParameterSet]:
+        return self.param_sets
 
-    def mapping(self, sim_ids, sweep_id, save=True):
+    def mapping(self, sim_ids: Collection[str], sweep_id: str,
+                save: bool = True) -> Dict[str, ParameterSet]:
         """
         Return a dictionary which maps simulation IDs to parameter sets.
 
@@ -202,7 +213,36 @@ class SetSweep(Sweep):
         If ``save=True``, this dictionary will be saved as a JSON file with the
         name ``sim_ids_{sweep_id}.json``.
         """
-        return _sparse_mapping(self.parameter_sets, sim_ids, sweep_id, save)
+        return _sparse_mapping(self.param_sets, sim_ids, sweep_id, save)
+
+
+class _RandomVariable(ABC):
+    """
+    Abstract class for random variables.
+
+    This interface is modelled on SciPy's
+    ``scipy.stats._distn_infrastructure.rv_generic`` generic random variable
+    class. Random variables must implement an ``rvs``method to generate
+    samples.
+
+    """
+
+    @abstractmethod
+    def rvs(self, size: int,
+            random_state: Optional[RandomState] = None) -> Collection[float]:
+        """
+        Generate random samples.
+
+        Parameters
+        ----------
+        size : int
+            How many samples to draw
+        random_state : numpy.random.RandomState instance, optional
+            If provided, use the given random state in generating random
+            numbers. Otherwise, use the global random state.
+
+        """
+        pass
 
 
 class RandomSweep(Sweep):
@@ -215,8 +255,8 @@ class RandomSweep(Sweep):
     Parameters
     ----------
     sweep_params : dict
-        A dictionary containing the parameter names as keys and SciPy random
-        variables (i.e., instances of subclasses of
+        A dictionary containing the parameter names as keys and random
+        variables (i.e., instances of subclasses of ``_RandomVariable``, or of
         ``scipy.stats._distn_infrastructure.rv_generic``) as values.
     length : int
         The number of sets of random parameters to draw
@@ -226,24 +266,25 @@ class RandomSweep(Sweep):
 
     """
 
-    def __init__(self, sweep_params, length, random_state=None):
+    def __init__(self, sweep_params: Dict[str, _RandomVariable], length: int,
+                 random_state: Optional[RandomState] = None):
         self.sweep_params = sweep_params
         self.length = length
         self.random_state = random_state
 
-    def __len__(self):
+    def __len__(self) -> int:
         return self.length
 
-    def elements(self):
+    def elements(self) -> Iterable[ParameterSet]:
         param_rvs = [rv.rvs(size=self.length, random_state=self.random_state)
                      for rv in self.sweep_params.values()]
-        self.parameter_sets = [dict(param_set) for param_set in
-                               zip(*(zip([key]*self.length, rvs) for key, rvs
-                                     in zip(self.sweep_params.keys(),
-                                            param_rvs)))]
-        return self.parameter_sets
+        self.param_sets = (dict(param_set) for param_set in
+                           zip(*(zip([key]*self.length, rvs) for key, rvs
+                                 in zip(self.sweep_params.keys(), param_rvs))))
+        return self.param_sets
 
-    def mapping(self, sim_ids, sweep_id, save=True):
+    def mapping(self, sim_ids: Collection[str], sweep_id: str,
+                save: bool = True) -> Dict[str, ParameterSet]:
         """
         Return a dictionary which maps simulation IDs to parameter sets.
 
@@ -251,4 +292,4 @@ class RandomSweep(Sweep):
         If ``save=True``, this dictionary will be saved as a JSON file with the
         name ``sim_ids_{sweep_id}.json``.
         """
-        return _sparse_mapping(self.parameter_sets, sim_ids, sweep_id, save)
+        return _sparse_mapping(self.param_sets, sim_ids, sweep_id, save)
