@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: parasweep
-Version: 2019.2.2.post1
+Version: 2019.2.3
 Summary: Utility for facilitating parallel parameter sweeps.
 Home-page: https://github.com/eviatarbach/parasweep
 Author: Eviatar Bach
@@ -55,6 +55,11 @@ Description: =========
         History
         =======
         
+        2019.02.3 (2019-02-20)
+        ----------------------
+        
+        * Adding SetNamer naming
+        
         2019.02.2 (2019-02-18)
         ----------------------
         
@@ -84,5 +89,5 @@ Classifier: Natural Language :: English
 Classifier: Programming Language :: Python :: 3.6
 Classifier: Programming Language :: Python :: 3.7
 Requires-Python: >=3.6
-Provides-Extra: DRMAA support
 Provides-Extra: Mako templates
+Provides-Extra: DRMAA support
