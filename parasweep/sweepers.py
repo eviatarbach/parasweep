@@ -5,14 +5,14 @@ from functools import reduce
 import json
 
 
-def _sparse_mapping(parameter_sets, sim_ids, sweep_id, save):
+def _sparse_mapping(param_sets, sim_ids, sweep_id, save):
     """
     Mapping function for sparse sweeps (not a full `n`-dimensional array).
 
     Returns a dictionary mapping simulation IDs to the parameter set used for
     that simulation.
     """
-    sim_id_mapping = dict(zip(sim_ids, parameter_sets))
+    sim_id_mapping = dict(zip(sim_ids, param_sets))
 
     if save:
         sim_ids_filename = f'sim_ids_{sweep_id}.json'
@@ -186,13 +186,13 @@ class SetSweep(Sweep):
     """
 
     def __init__(self, param_sets):
-        self.parameter_sets = param_sets
+        self.param_sets = param_sets
 
     def __len__(self):
-        return len(self.parameter_sets)
+        return len(self.param_sets)
 
     def elements(self):
-        return self.parameter_sets
+        return self.param_sets
 
     def mapping(self, sim_ids, sweep_id, save=True):
         """
@@ -202,7 +202,34 @@ class SetSweep(Sweep):
         If ``save=True``, this dictionary will be saved as a JSON file with the
         name ``sim_ids_{sweep_id}.json``.
         """
-        return _sparse_mapping(self.parameter_sets, sim_ids, sweep_id, save)
+        return _sparse_mapping(self.param_sets, sim_ids, sweep_id, save)
+
+
+class _RandomVariable(ABC):
+    """
+    Abstract class for random variables.
+
+    This interface is modelled on SciPy's
+    ``scipy.stats._distn_infrastructure.rv_generic`` generic random variable
+    class. Random variables must implement an ``rvs``method to generate
+    samples.
+    """
+
+    @abstractmethod
+    def rvs(self, size, random_state=None):
+        """
+        Generate random samples.
+
+        Parameters
+        ----------
+        size : int
+            How many samples to draw
+        random_state : numpy.random.RandomState instance, optional
+            If provided, use the given random state in generating random
+            numbers. Otherwise, use the global random state.
+
+        """
+        pass
 
 
 class RandomSweep(Sweep):
@@ -216,7 +243,7 @@ class RandomSweep(Sweep):
     ----------
     sweep_params : dict
         A dictionary containing the parameter names as keys and SciPy random
-        variables (i.e., instances of subclasses of
+        variables (i.e., instances of subclasses of ``_RandomVariable``, or of
         ``scipy.stats._distn_infrastructure.rv_generic``) as values.
     length : int
         The number of sets of random parameters to draw
@@ -237,11 +264,11 @@ class RandomSweep(Sweep):
     def elements(self):
         param_rvs = [rv.rvs(size=self.length, random_state=self.random_state)
                      for rv in self.sweep_params.values()]
-        self.parameter_sets = [dict(param_set) for param_set in
-                               zip(*(zip([key]*self.length, rvs) for key, rvs
-                                     in zip(self.sweep_params.keys(),
-                                            param_rvs)))]
-        return self.parameter_sets
+        self.param_sets = [dict(param_set) for param_set in
+                           zip(*(zip([key]*self.length, rvs) for key, rvs
+                                 in zip(self.sweep_params.keys(),
+                                        param_rvs)))]
+        return self.param_sets
 
     def mapping(self, sim_ids, sweep_id, save=True):
         """
@@ -251,4 +278,4 @@ class RandomSweep(Sweep):
         If ``save=True``, this dictionary will be saved as a JSON file with the
         name ``sim_ids_{sweep_id}.json``.
         """
-        return _sparse_mapping(self.parameter_sets, sim_ids, sweep_id, save)
+        return _sparse_mapping(self.param_sets, sim_ids, sweep_id, save)

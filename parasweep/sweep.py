@@ -38,8 +38,8 @@ def run_sweep(command, configs, templates, sweep, namer=SequentialNamer(),
     dispatcher : dispatchers.Dispatcher instance, optional
         A :class:`parasweep.dispatchers.Dispatcher` object that specifies how
         to run the jobs. By default, uses Python's ``subprocess`` module.
-    template_engine : templates.Template instance, optional
-        A :class:`parasweep.templates.Template` object that specifies the
+    template_engine : templates.TemplateEngine instance, optional
+        A :class:`parasweep.templates.TemplateEngine` object that specifies the
         template engine to use. By default, uses Python format strings.
     sweep_id : str, optional
         A name for the sweep. By default, the name is generated automatically

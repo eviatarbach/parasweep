@@ -123,7 +123,7 @@ class SetNamer(Namer):
 
     Parameters
     ----------
-    names : Iterator[str]
+    names : Iterable[str]
         The sequence of names to assign to consecutive simulations.
 
     Examples
