@@ -8,7 +8,7 @@ namelist /params/ beta, sigma, rho
 character(6) :: sim_id
 
 call get_command_argument(1, sim_id)
-open(1, file="params_"//trim(sim_id)//".nml")
+open(1, file="params_" // trim(sim_id) // ".nml")
 read(1, nml=params)
 
 ! Spin-up
@@ -38,7 +38,7 @@ end do
 
 lyap = lyap/(N_run*dt)
 
-open(2, file="results_"//trim(sim_id)//".txt",
+open(2, file="results_" // trim(sim_id) // ".txt",
      action="write")
 write(2, *) lyap
 
