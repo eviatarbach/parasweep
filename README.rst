@@ -18,6 +18,8 @@ a parallel job is dispatched for each parameter set, with support for common
 high-performance computing job schedulers. Post-processing is facilitated by
 providing a mapping between the parameter sets and the simulations.
 
+The following paper gives a description as well as a simple example to get started: https://arxiv.org/pdf/1905.03448.pdf
+
 * Free software: MIT license
 * Documentation: http://www.parasweep.io
 * Code: https://github.com/eviatarbach/parasweep
