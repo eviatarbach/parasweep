@@ -46,7 +46,7 @@ class PythonFormatTemplate(TemplateEngine):
     def load(self, paths):
         self.templates = []
         for path in paths:
-            with open(path, 'r') as template_file:
+            with open(path, 'r', encoding='utf-8') as template_file:
                 self.templates.append(template_file.read())
 
     def render(self, param_set):
