@@ -2,6 +2,12 @@
 History
 =======
 
+2020.02 (2020-02-17)
+--------------------
+
+* Fixing bug with default sweep_id on Windows (thanks to danielphili)
+* Unicode support for PythonFormatTemplate
+
 2019.02.3 (2019-02-20)
 ----------------------
 
