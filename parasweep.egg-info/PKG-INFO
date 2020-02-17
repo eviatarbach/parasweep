@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: parasweep
-Version: 2019.2.3
+Version: 2020.2
 Summary: Utility for facilitating parallel parameter sweeps.
 Home-page: https://github.com/eviatarbach/parasweep
 Author: Eviatar Bach
@@ -25,6 +25,8 @@ Description: =========
         a parallel job is dispatched for each parameter set, with support for common
         high-performance computing job schedulers. Post-processing is facilitated by
         providing a mapping between the parameter sets and the simulations.
+        
+        The following paper gives a description as well as a simple example to get started: https://arxiv.org/pdf/1905.03448.pdf
         
         * Free software: MIT license
         * Documentation: http://www.parasweep.io
@@ -54,6 +56,12 @@ Description: =========
         =======
         History
         =======
+        
+        2020.02 (2020-02-17)
+        --------------------
+        
+        * Fixing bug with default sweep_id on Windows (thanks to danielphili)
+        * Unicode support for PythonFormatTemplate
         
         2019.02.3 (2019-02-20)
         ----------------------
