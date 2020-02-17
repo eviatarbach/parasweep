@@ -80,7 +80,7 @@ def run_sweep(command, configs, templates, sweep, namer=SequentialNamer(),
 
     if not sweep_id:
         current_time = datetime.datetime.now()
-        sweep_id = current_time.strftime('%Y-%m-%dT%H:%M:%S')
+        sweep_id = current_time.strftime('%Y-%m-%dT%H_%M_%S')
 
     template_engine.load(paths=templates)
 
