@@ -18,7 +18,7 @@ a parallel job is dispatched for each parameter set, with support for common
 high-performance computing job schedulers. Post-processing is facilitated by
 providing a mapping between the parameter sets and the simulations.
 
-The following paper gives a description as well as a simple example to get started: https://arxiv.org/pdf/1905.03448.pdf
+**The following paper gives a description as well as a simple example to get started: https://arxiv.org/pdf/1905.03448.pdf. Please cite it if you find parasweep useful for your project!**
 
 * Free software: MIT license
 * Documentation: http://www.parasweep.io
@@ -37,7 +37,7 @@ Dependencies
 Credits
 -------
 
-Developed by `Eviatar Bach <http://eviatarbach.com/>`_ <eviatarbach@protonmail.com>.
+Developed by `Eviatar Bach <http://eviatarbach.com/>`_ <eviatarbach@protonmail.com>. Special thanks to Daniel Philipps (danielphili) for a bug fix.
 
 This package was created with Cookiecutter_ and the `audreyr/cookiecutter-pypackage`_ project template.
 
