@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: parasweep
-Version: 2020.2
+Version: 2020.9
 Summary: Utility for facilitating parallel parameter sweeps.
 Home-page: https://github.com/eviatarbach/parasweep
 Author: Eviatar Bach
@@ -26,7 +26,7 @@ Description: =========
         high-performance computing job schedulers. Post-processing is facilitated by
         providing a mapping between the parameter sets and the simulations.
         
-        The following paper gives a description as well as a simple example to get started: https://arxiv.org/pdf/1905.03448.pdf
+        **The following paper gives a description as well as a simple example to get started: https://arxiv.org/pdf/1905.03448.pdf. Please cite it if you find parasweep useful for your project!**
         
         * Free software: MIT license
         * Documentation: http://www.parasweep.io
@@ -45,7 +45,7 @@ Description: =========
         Credits
         -------
         
-        Developed by `Eviatar Bach <http://eviatarbach.com/>`_ <eviatarbach@protonmail.com>.
+        Developed by `Eviatar Bach <http://eviatarbach.com/>`_ <eviatarbach@protonmail.com>. Special thanks to Daniel Philipps (danielphili) for a bug fix and feature suggestion.
         
         This package was created with Cookiecutter_ and the `audreyr/cookiecutter-pypackage`_ project template.
         
@@ -56,6 +56,11 @@ Description: =========
         =======
         History
         =======
+        
+        2020.09 (2020-09-02)
+        --------------------
+        
+        * Incorporating sweep_id into SequentialNamer (thanks to danielphili)
         
         2020.02 (2020-02-17)
         --------------------
@@ -97,5 +102,5 @@ Classifier: Natural Language :: English
 Classifier: Programming Language :: Python :: 3.6
 Classifier: Programming Language :: Python :: 3.7
 Requires-Python: >=3.6
-Provides-Extra: Mako templates
 Provides-Extra: DRMAA support
+Provides-Extra: Mako templates

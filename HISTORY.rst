@@ -2,6 +2,11 @@
 History
 =======
 
+2020.09 (2020-09-02)
+--------------------
+
+* Incorporating sweep_id into SequentialNamer (thanks to danielphili)
+
 2020.02 (2020-02-17)
 --------------------
 
