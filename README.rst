@@ -37,7 +37,7 @@ Dependencies
 Credits
 -------
 
-Developed by `Eviatar Bach <http://eviatarbach.com/>`_ <eviatarbach@protonmail.com>. Special thanks to Daniel Philipps (danielphili) for a bug fix.
+Developed by `Eviatar Bach <http://eviatarbach.com/>`_ <eviatarbach@protonmail.com>. Special thanks to Daniel Philipps (danielphili) for a bug fix and feature suggestion.
 
 This package was created with Cookiecutter_ and the `audreyr/cookiecutter-pypackage`_ project template.
 

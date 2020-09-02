@@ -58,6 +58,9 @@ class SequentialNamer(Namer):
     '00'
     >>> counter.generate_id({'key2': 'value2'}, '')
     '01'
+    >>> counter.start(length=2)
+    >>> counter.generate_id({'key1': 'value1'}, 'sweep_id')
+    'sweep_id_0'
 
     """
 
@@ -82,7 +85,10 @@ class SequentialNamer(Namer):
         if self.count + 1 >= self.length + self.start_at:
             raise StopIteration
         self.count += 1
-        return str(self.count).zfill(self.zfill)
+        if sweep_id:
+            return '_'.join([sweep_id, str(self.count).zfill(self.zfill)])
+        else:
+            return str(self.count).zfill(self.zfill)
 
 
 class HashNamer(Namer):

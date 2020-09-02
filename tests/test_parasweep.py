@@ -429,6 +429,11 @@ class TestNamers(unittest.TestCase):
         with self.assertRaises(StopIteration):
             counter.generate_id({'key3': 'key_value3'}, '')
 
+        counter = SequentialNamer()
+        counter.start(length=1)
+
+        self.assertEqual(counter.generate_id({'key1': 'value1'}, 'sweep_id'), 'sweep_id_0')
+
     def test_hash(self):
         counter = HashNamer()
 
