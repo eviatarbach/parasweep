@@ -11,8 +11,8 @@ from parasweep.templates import PythonFormatTemplate
 def run_sweep(command, configs, templates, sweep, namer=SequentialNamer(),
               dispatcher=SubprocessDispatcher(),
               template_engine=PythonFormatTemplate(), sweep_id=None,
-              serial=False, wait=False, cleanup=False, verbose=True,
-              overwrite=True, save_mapping=True):
+              excluded_sim_ids=[], serial=False, wait=False, cleanup=False,
+              verbose=True, overwrite=True, save_mapping=True):
     r"""
     Run parameter sweeps.
 
@@ -44,6 +44,8 @@ def run_sweep(command, configs, templates, sweep, namer=SequentialNamer(),
     sweep_id : str, optional
         A name for the sweep. By default, the name is generated automatically
         from the date and time.
+    excluded_sim_ids : list, optional
+        A list of simulation IDs to exclude from the sweep.
     serial : bool, optional
         Whether to run simulations serially, i.e., to wait for each simulation
         to complete before executing the next one. Enabling this turns off
@@ -95,23 +97,24 @@ def run_sweep(command, configs, templates, sweep, namer=SequentialNamer(),
         sim_id = namer.generate_id(param_set, sweep_id)
         sim_ids.append(sim_id)
 
-        rendered = template_engine.render(param_set)
-        for config_rendered, config_path in zip(rendered, configs):
-            config_filename = config_path.format(sim_id=sim_id)
-            config_filenames.append(config_filename)
-            if not overwrite:
-                if os.path.isfile(config_filename):
-                    raise FileExistsError(f'{config_filename} exists, set '
-                                          '`overwrite` to True to overwrite.')
-            with open(config_filename, 'wb') as config_file:
-                config_file.write(config_rendered.encode('utf-8', 'replace'))
+        if sim_id not in excluded_sim_ids:
+            rendered = template_engine.render(param_set)
+            for config_rendered, config_path in zip(rendered, configs):
+                config_filename = config_path.format(sim_id=sim_id)
+                config_filenames.append(config_filename)
+                if not overwrite:
+                    if os.path.isfile(config_filename):
+                        raise FileExistsError(f'{config_filename} exists, set '
+                                              '`overwrite` to True to overwrite.')
+                with open(config_filename, 'wb') as config_file:
+                    config_file.write(config_rendered.encode('utf-8', 'replace'))
 
-        if verbose:
-            print(f'Running simulation {sim_id} with parameters:')
-            print('\n'.join(f'{key}: {param}' for key, param
-                            in param_set.items()))
+            if verbose:
+                print(f'Running simulation {sim_id} with parameters:')
+                print('\n'.join(f'{key}: {param}' for key, param
+                                in param_set.items()))
 
-        dispatcher.dispatch(command.format(sim_id=sim_id), serial)
+            dispatcher.dispatch(command.format(sim_id=sim_id), serial)
 
     if wait:
         dispatcher.wait_all()

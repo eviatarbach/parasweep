@@ -167,13 +167,13 @@ class TestSweep(unittest.TestCase):
             run_sweep(' '.join([sleepcat, str(3), '{sim_id}.txt', out.name]),
                       ['{sim_id}.txt'], templates=[template.name],
                       sweep=CartesianSweep({'x': [1, 1, 1]}), wait=True,
-                      verbose=False, save_mapping=False)
+                      verbose=False, save_mapping=False, sweep_id='test')
 
             self.assertEqual(out.read(), 'Hello 1\nHello 1\nHello 1\n')
 
-        os.remove('0.txt')
-        os.remove('1.txt')
-        os.remove('2.txt')
+        os.remove('test_0.txt')
+        os.remove('test_1.txt')
+        os.remove('test_2.txt')
 
     def test_errors(self):
         with tempfile.NamedTemporaryFile('w') as template:
@@ -233,8 +233,8 @@ class TestSweep(unittest.TestCase):
             self.assertEqual(set(out.read().splitlines()),
                              set(('Hello 2, 8, 5\n'
                                   'Hello 1, -4, 9\n').splitlines()))
-            self.assertEqual(mapping, {'0': {'x': 2, 'y': 8, 'z': 5},
-                                       '1': {'x': 1, 'y': -4, 'z': 9}})
+            self.assertEqual(mapping, {'test1_0': {'x': 2, 'y': 8, 'z': 5},
+                                       'test1_1': {'x': 1, 'y': -4, 'z': 9}})
 
             self.assertTrue(os.path.isfile('sim_ids_test1.json'))
 
@@ -304,19 +304,20 @@ class TestSweep(unittest.TestCase):
             run_sweep(' '.join([cat, ' {sim_id}.txt']),
                       ['{sim_id}.txt'], templates=[template.name],
                       sweep=CartesianSweep({'x': [1]}),
-                      verbose=False, cleanup=False, save_mapping=False)
+                      verbose=False, cleanup=False, save_mapping=False,
+                      sweep_id='test')
 
             with self.assertRaises(FileExistsError) as context:
                 run_sweep(' '.join([cat, ' {sim_id}.txt']),
                           ['{sim_id}.txt'], templates=[template.name],
                           sweep=CartesianSweep({'x': [1]}),
                           verbose=False, cleanup=False, save_mapping=False,
-                          overwrite=False)
+                          overwrite=False, sweep_id='test')
 
-            self.assertEqual('0.txt exists, set `overwrite` to True to '
+            self.assertEqual('test_0.txt exists, set `overwrite` to True to '
                              'overwrite.', str(context.exception))
 
-            os.remove('0.txt')
+            os.remove('test_0.txt')
 
     def test_verbose(self):
         with tempfile.NamedTemporaryFile('w') as template:
@@ -328,10 +329,10 @@ class TestSweep(unittest.TestCase):
                 run_sweep(' '.join([cat, ' {sim_id}.txt']),
                           ['{sim_id}.txt'], templates=[template.name],
                           sweep=CartesianSweep({'x': [1]}),
-                          verbose=True, cleanup=True, save_mapping=False)
+                          verbose=True, cleanup=True, save_mapping=False, sweep_id='test')
 
             self.assertEqual(temp_stdout.getvalue(),
-                             'Running simulation 0 with parameters:\nx: 1\n')
+                             'Running simulation test_0 with parameters:\nx: 1\n')
 
     def test_max_procs(self):
         with tempfile.NamedTemporaryFile('w') as template:
