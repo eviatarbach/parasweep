@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: parasweep
-Version: 2020.9
+Version: 2020.10
 Summary: Utility for facilitating parallel parameter sweeps.
 Home-page: https://github.com/eviatarbach/parasweep
 Author: Eviatar Bach
@@ -56,6 +56,12 @@ Description: =========
         =======
         History
         =======
+        
+        2020.10 (2020-10-27)
+        --------------------
+        
+        * Adding option to exclude simulation IDs 
+        * Allowing empty sweep ID
         
         2020.09 (2020-09-02)
         --------------------

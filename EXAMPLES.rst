@@ -17,7 +17,7 @@ In a Cartesian sweep, all the combinations of all the parameters are used
 
 **template.txt**::
 
-    Hello {x}, {y}, {z}\n
+    Hello {x}, {y}, {z}
 
 **Command**::
 
@@ -28,7 +28,7 @@ In a Cartesian sweep, all the combinations of all the parameters are used
     ...                     sweep=CartesianSweep({'x': [1, 2],
     ...                                           'y': [3, 4, 5],
     ...                                           'z': [6, 7]}),
-    ...                     verbose=False)
+    ...                     verbose=False, sweep_id='test')
     Hello 1, 3, 6
     Hello 1, 3, 7
     Hello 1, 4, 6
@@ -51,13 +51,13 @@ simulation IDs, which facilitates postprocessing::
 
     >>> mapping
     <xarray.DataArray 'sim_id' (x: 2, y: 3, z: 2)>
-    array([[['00', '01'],
-            ['02', '03'],
-            ['04', '05']],
+    array([[['test_00', 'test_01'],
+            ['test_02', 'test_03'],
+            ['test_04', 'test_05']],
 
-           [['06', '07'],
-            ['08', '09'],
-            ['10', '11']]], dtype='<U2')
+           [['test_06', 'test_07'],
+            ['test_08', 'test_09'],
+            ['test_10', 'test_11']]], dtype='<U7')
     Coordinates:
       * x        (x) int64 1 2
       * y        (y) int64 3 4 5
@@ -76,7 +76,7 @@ but only include those parameter sets where ``x > y``:
 
 **template.txt**::
 
-    Hello {x}, {y}, {z}\n
+    Hello {x}, {y}, {z}
 
 **Command**::
 
@@ -87,7 +87,7 @@ but only include those parameter sets where ``x > y``:
     >>> mapping = run_sweep(command='cat {sim_id}.txt',
     ...                     configs=['{sim_id}.txt'],
     ...                     templates=['template.txt'], sweep=sweep,
-    ...                     verbose=False)
+    ...                     verbose=False, sweep_id='test')
     Hello 2, 1, 4
     Hello 2, 1, 5
     Hello 3, 1, 4
@@ -101,12 +101,12 @@ but only include those parameter sets where ``x > y``:
 In this case, the parameter mapping is a dictionary like the following::
 
     >>> mapping
-    {'0': {'x': 2, 'y': 1, 'z': 4},
-     '1': {'x': 2, 'y': 1, 'z': 5},
-     '2': {'x': 3, 'y': 1, 'z': 4},
-     '3': {'x': 3, 'y': 1, 'z': 5},
-     '4': {'x': 3, 'y': 2, 'z': 4},
-     '5': {'x': 3, 'y': 2, 'z': 5}}
+    {'test_0': {'x': 2, 'y': 1, 'z': 4},
+     'test_1': {'x': 2, 'y': 1, 'z': 5},
+     'test_2': {'x': 3, 'y': 1, 'z': 4},
+     'test_3': {'x': 3, 'y': 1, 'z': 5},
+     'test_4': {'x': 3, 'y': 2, 'z': 4},
+     'test_5': {'x': 3, 'y': 2, 'z': 5}}
 
 SetSweep
 ~~~~~~~~
@@ -116,7 +116,7 @@ Instead of a Cartesian sweep, specific parameter sets can be used with
 
 **template.txt**::
 
-    Hello {x}, {y}, {z}\n
+    Hello {x}, {y}, {z}
 
 **Command**::
 
@@ -126,7 +126,7 @@ Instead of a Cartesian sweep, specific parameter sets can be used with
     ...                     templates=['template.txt'],
     ...                     sweep=SetSweep([{'x': 2, 'y': 8, 'z': 5},
     ...                                     {'x': 1, 'y': -4, 'z': 9}]),
-    ...                     verbose=False)
+    ...                     verbose=False, sweep_id='test')
     Hello 2, 8, 5
     Hello 1, -4, 9
 
@@ -134,7 +134,7 @@ Here, as with ``FilteredCartesianSweep``, the parameter mapping is a
 dictionary::
 
     >>> mapping
-    {'0': {'x': 2, 'y': 8, 'z': 5}, '1': {'x': 1, 'y': -4, 'z': 9}}
+    {'test_0': {'x': 2, 'y': 8, 'z': 5}, 'test_1': {'x': 1, 'y': -4, 'z': 9}}
 
 RandomSweep
 ~~~~~~~~~~~
@@ -144,7 +144,7 @@ random distributions.
 
 **template.txt**::
 
-    Hello {x}, {y}\n
+    Hello {x}, {y}
 
 **Command**::
 
@@ -156,7 +156,7 @@ random distributions.
     ...                     sweep=RandomSweep({'x': scipy.stats.norm(),
     ...                                        'y': scipy.stats.uniform()},
     ...                                       length=3),
-    ...                     verbose=False)
+    ...                     verbose=False, sweep_id='test')
     Hello 0.9533238364874957, 0.8197338171659898
     Hello -1.966220661588362, 0.3213785864763252
     Hello -0.057572896338656816, 0.17615488655036005
@@ -167,9 +167,9 @@ between 0 and 1.
 The parameter mapping is again a dictionary::
 
     >>> mapping
-    {'0': {'x': 0.9533238364874957, 'y': 0.8197338171659898},
-     '1': {'x': -1.966220661588362, 'y': 0.3213785864763252},
-     '2': {'x': -0.057572896338656816, 'y': 0.17615488655036005}}
+    {'test_0': {'x': 0.9533238364874957, 'y': 0.8197338171659898},
+     'test_1': {'x': -1.966220661588362, 'y': 0.3213785864763252},
+     'test_2': {'x': -0.057572896338656816, 'y': 0.17615488655036005}}
 
 Multiple configuration files
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -178,11 +178,11 @@ Multiple configuration files and their corresponding templates can be used:
 
 **template1.txt**::
 
-    Hello {x},\n
+    Hello {x},
 
 **template2.txt**::
 
-    hello again {y}\n
+    hello again {y}
 
 **Command**::
 
@@ -209,7 +209,7 @@ explicitly it is generated based on the current time.
 
 **template.txt**::
 
-    Hello {x},\n
+    Hello {x},
 
 **Command**::
 
@@ -255,7 +255,7 @@ assumes that DRMAA and an interface to a job scheduler are installed.
 
 **template.txt**::
 
-    Hello {x}\n
+    Hello {x}
 
 **Command**::
 
@@ -297,7 +297,7 @@ Python formatting templates:
 
 **template.txt**::
 
-    Hello {x:.2f}\n
+    Hello {x:.2f}
 
 **Command**::
 
@@ -319,7 +319,7 @@ formatting templates, being able to insert code within the template:
 
 **template.txt**::
 
-    Hello ${x*10}\n
+    Hello ${x*10}
 
 **Command**::
 
@@ -345,7 +345,7 @@ helpful to use ``HashNamer`` to avoid collision of the output files.
 
 **template.txt**::
 
-    Hello {x}\n
+    Hello {x}
 
 **Command**::
 

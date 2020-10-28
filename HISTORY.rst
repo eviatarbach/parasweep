@@ -2,6 +2,12 @@
 History
 =======
 
+2020.10 (2020-10-27)
+--------------------
+
+* Adding option to exclude simulation IDs 
+* Allowing empty sweep ID
+
 2020.09 (2020-09-02)
 --------------------
 

@@ -80,7 +80,7 @@ def run_sweep(command, configs, templates, sweep, namer=SequentialNamer(),
     if isinstance(configs, str) or isinstance(templates, str):
         raise TypeError('`configs` and `templates` must be a list.')
 
-    if not sweep_id:
+    if sweep_id is None:
         current_time = datetime.datetime.now()
         sweep_id = current_time.strftime('%Y-%m-%dT%H_%M_%S')
 
