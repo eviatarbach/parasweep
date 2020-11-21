@@ -5,7 +5,7 @@ integer, parameter :: N_spin = 1000000, N_run = 1000000
 real(8) :: beta, sigma, rho, x_a, y_a, z_a, x_b, y_b, z_b, d1, lyap = 0
 integer :: i
 namelist /params/ beta, sigma, rho
-character(6) :: sim_id
+character(30) :: sim_id
 
 call get_command_argument(1, sim_id)
 open(1, file="params_" // trim(sim_id) // ".nml")
@@ -38,8 +38,7 @@ end do
 
 lyap = lyap/(N_run*dt)
 
-open(2, file="results_" // trim(sim_id) // ".txt",
-     action="write")
+open(2, file="results_" // trim(sim_id) // ".txt", action="write")
 write(2, *) lyap
 
 contains
