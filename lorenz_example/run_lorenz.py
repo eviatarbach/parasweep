@@ -13,7 +13,7 @@ sweep = CartesianSweep(sweep_params)
 mapping = run_sweep(command='./lorenz {sim_id}',
                     configs=['params_{sim_id}.nml'],
                     templates=['template.txt'],
-                    sweep=sweep, wait=True)
+                    sweep=sweep)
 
 
 def get_output(sim_id):

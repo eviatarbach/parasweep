@@ -2,6 +2,12 @@
 History
 =======
 
+2021.01 (2021-01-06)
+--------------------
+
+* Changing wait option to be True by default
+* Minor fixes to Lorenz example
+
 2020.10 (2020-10-27)
 --------------------
 

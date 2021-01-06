@@ -11,7 +11,7 @@ from parasweep.templates import PythonFormatTemplate
 def run_sweep(command, configs, templates, sweep, namer=SequentialNamer(),
               dispatcher=SubprocessDispatcher(),
               template_engine=PythonFormatTemplate(), sweep_id=None,
-              excluded_sim_ids=[], serial=False, wait=False, cleanup=False,
+              excluded_sim_ids=[], serial=False, wait=True, cleanup=False,
               verbose=True, overwrite=True, save_mapping=True):
     r"""
     Run parameter sweeps.
@@ -52,7 +52,7 @@ def run_sweep(command, configs, templates, sweep, namer=SequentialNamer(),
         parallelism. False by default.
     wait : bool, optional
         Whether to wait for all simulations to complete before returning.
-        False by default.
+        True by default.
     cleanup : bool, optional
         Whether to delete configuration files after all the simulations are
         done. This will cause the command to wait on all processes before
