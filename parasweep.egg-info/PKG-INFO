@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: parasweep
-Version: 2020.10
+Version: 2021.1
 Summary: Utility for facilitating parallel parameter sweeps.
 Home-page: https://github.com/eviatarbach/parasweep
 Author: Eviatar Bach
@@ -56,6 +56,12 @@ Description: =========
         =======
         History
         =======
+        
+        2021.01 (2021-01-06)
+        --------------------
+        
+        * Changing wait option to be True by default
+        * Minor fixes to Lorenz example
         
         2020.10 (2020-10-27)
         --------------------
