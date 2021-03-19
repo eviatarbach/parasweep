@@ -18,7 +18,10 @@ a parallel job is dispatched for each parameter set, with support for common
 high-performance computing job schedulers. Post-processing is facilitated by
 providing a mapping between the parameter sets and the simulations.
 
-**The following paper gives a description as well as a simple example to get started: https://arxiv.org/pdf/1905.03448.pdf. Please cite it if you find parasweep useful for your project!**
+**The following paper gives a description as well as a simple example to get started:**
+Bach, Eviatar (2021). parasweep: A template-based utility for generating, dispatching, and post-processing of parameter sweeps. *SoftwareX*, *13*, 100631, https://doi.org/10.1016/j.softx.2020.100631.
+
+**Please cite it if you find parasweep useful for your project!**
 
 * Free software: MIT license
 * Documentation: http://www.parasweep.io
